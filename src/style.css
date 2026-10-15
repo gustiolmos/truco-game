@@ -1,14 +1,53 @@
+/* ------------------------------------------------------------------
+   Pixelart. Tres reglas que no se rompen:
+   1. Nada de curvas: los cantos se hacen con escalones de --px.
+   2. Nada de blur: las sombras son desplazamientos duros.
+   3. Todo medido en múltiplos de --px, para que nada caiga entre píxeles.
+   ------------------------------------------------------------------ */
+
+@font-face {
+  font-family: 'Silkscreen';
+  src: url('../assets/fonts/Silkscreen-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-display: block;
+}
+@font-face {
+  font-family: 'Silkscreen';
+  src: url('../assets/fonts/Silkscreen-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-display: block;
+}
+
 :root {
-  --bg: #0b1020;
-  --bg-2: #141a35;
-  --felt: #10203a;
-  --ink: #eef2ff;
-  --muted: #8d98c4;
-  --accent: #ffc23d;
-  --win: #2fd37a;
-  --lose: #ff5d7a;
-  --card-w: clamp(84px, 13vw, 128px);
-  --radius: 14px;
+  --px: 4px;
+
+  /* Paleta corta a propósito: un pixelart con 40 colores se ve sucio.
+     Pero corta no quiere decir apagada: los acentos van saturados a fondo,
+     y el contraste lo da el fondo oscuro, no bajarles el brillo. */
+  --bg: #1b1040;
+  --bg-2: #2d1a66;
+  --ink: #fff6e4;
+  --ink-dark: #140f22;
+  --muted: #a99ae0;
+  --line: #4a349c;
+  --gold: #ffc233;
+  --red: #ff3b5c;
+  --blue: #3aa0ff;
+  --green: #35d35f;
+  --card-face: #fffaf0;
+
+  --card-w: clamp(100px, 15vw, 158px);
+  --notch: var(--px);
+
+  /* Cantos escalonados reutilizables: --notch se puede pisar por elemento. */
+  --pixel-corners: polygon(
+    var(--notch) 0, calc(100% - var(--notch)) 0,
+    calc(100% - var(--notch)) var(--notch), 100% var(--notch),
+    100% calc(100% - var(--notch)), calc(100% - var(--notch)) calc(100% - var(--notch)),
+    calc(100% - var(--notch)) 100%, var(--notch) 100%,
+    var(--notch) calc(100% - var(--notch)), 0 calc(100% - var(--notch)),
+    0 var(--notch), var(--notch) var(--notch)
+  );
 }
 
 * { box-sizing: border-box; }
@@ -19,28 +58,30 @@ html, body {
   overflow: hidden;
   background: var(--bg);
   color: var(--ink);
-  font-family: 'Segoe UI', system-ui, sans-serif;
-  -webkit-font-smoothing: antialiased;
+  font-family: 'Silkscreen', 'Courier New', monospace;
+  /* El antialias es el enemigo del pixelart. */
+  -webkit-font-smoothing: none;
+  font-smooth: never;
 }
 
+/* Fondo: foco de luz saturado detrás de la mesa. Nada que se superponga al
+   resto del cuadro: cualquier velo encima apaga los colores de las cartas. */
 body::before {
   content: '';
   position: fixed;
-  inset: -20%;
+  inset: 0;
   background:
-    radial-gradient(60% 50% at 50% 30%, #1d2a55 0%, transparent 70%),
-    radial-gradient(50% 40% at 20% 90%, #2a1740 0%, transparent 70%),
-    linear-gradient(160deg, var(--bg), var(--bg-2));
-  animation: drift 24s ease-in-out infinite alternate;
+    radial-gradient(64% 58% at 50% 34%, #4a2aa8 0%, transparent 72%),
+    linear-gradient(170deg, var(--bg), var(--bg-2));
   z-index: -2;
 }
-@keyframes drift { to { transform: scale(1.12) rotate(2deg); } }
 
 #fx {
   position: fixed;
   inset: 0;
   pointer-events: none;
   z-index: 50;
+  image-rendering: pixelated;
 }
 
 #stage {
@@ -48,8 +89,8 @@ body::before {
   height: 100%;
   display: grid;
   grid-template-rows: auto 1fr 1.2fr 1fr auto;
-  gap: 4px;
-  padding: 10px clamp(8px, 3vw, 28px) 14px;
+  gap: var(--px);
+  padding: calc(var(--px) * 3) clamp(8px, 3vw, 28px) calc(var(--px) * 4);
   will-change: transform;
 }
 
@@ -58,42 +99,56 @@ body::before {
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  gap: 12px;
+  gap: calc(var(--px) * 3);
 }
 .score {
   display: flex;
-  align-items: baseline;
-  gap: 10px;
-  padding: 8px 16px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.09);
+  align-items: center;
+  gap: calc(var(--px) * 2);
+  padding: calc(var(--px) * 2) calc(var(--px) * 3);
   width: fit-content;
+  clip-path: var(--pixel-corners);
+  background: #2a1a5e;
+  box-shadow: inset 0 0 0 var(--px) var(--line);
 }
 #score-human { margin-left: auto; }
-.who { font-size: 0.78rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
-.num { font-size: 1.9rem; font-weight: 800; font-variant-numeric: tabular-nums; }
-.num.pulse { animation: pop 0.34s cubic-bezier(.2,1.7,.4,1); }
+.who {
+  font-size: 0.74rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.num {
+  font-size: 2rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+/* El pop del contador va en pasos: el pixelart no hace easing suave. */
+.num.pulse { animation: pop 0.3s steps(4, end); }
 @keyframes pop {
   0% { transform: scale(1); }
-  45% { transform: scale(1.65); color: var(--accent); text-shadow: 0 0 24px var(--accent); }
+  40% { transform: scale(1.6); color: var(--gold); }
   100% { transform: scale(1); }
 }
 
 .round-info { text-align: center; }
 .pot {
   font-weight: 700;
-  font-size: 0.9rem;
-  color: var(--accent);
-  text-shadow: 0 0 18px rgba(255, 194, 61, 0.45);
+  font-size: 0.95rem;
+  color: var(--gold);
+  text-transform: uppercase;
+  /* "Glow" pixelado: sombra dura desplazada, no un halo difuso. */
+  text-shadow: var(--px) var(--px) 0 rgba(0, 0, 0, 0.5);
 }
-.tricks { display: flex; gap: 6px; justify-content: center; margin-top: 6px; }
+.tricks { display: flex; gap: var(--px); justify-content: center; margin-top: calc(var(--px) * 2); }
 .tricks i {
-  width: 9px; height: 9px; border-radius: 50%;
-  background: rgba(255, 255, 255, 0.16);
+  width: calc(var(--px) * 3);
+  height: calc(var(--px) * 3);
+  background: #3d2a7a;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.45);
 }
-.tricks i.w { background: var(--win); box-shadow: 0 0 12px var(--win); }
-.tricks i.l { background: var(--lose); box-shadow: 0 0 12px var(--lose); }
+.tricks i.w { background: var(--green); }
+.tricks i.l { background: var(--red); }
 .tricks i.p { background: var(--muted); }
 
 /* ---------- cartas ---------- */
@@ -101,134 +156,209 @@ body::before {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: clamp(6px, 1.5vw, 18px);
+  gap: clamp(6px, 1.5vw, 16px);
   perspective: 1100px;
 }
 .table {
-  gap: clamp(14px, 4vw, 48px);
-  background: radial-gradient(45% 70% at 50% 50%, rgba(47, 211, 122, 0.08), transparent 70%);
-  border-radius: 24px;
+  gap: clamp(12px, 4vw, 44px);
+  background:
+    repeating-linear-gradient(45deg,
+      rgba(53, 211, 95, 0.1) 0 var(--px),
+      transparent var(--px) calc(var(--px) * 2));
+  clip-path: var(--pixel-corners);
+  --notch: calc(var(--px) * 2);
 }
-.slot { min-width: var(--card-w); min-height: calc(var(--card-w) * 1.55); display: grid; place-items: center; }
+.slot {
+  min-width: var(--card-w);
+  min-height: calc(var(--card-w) * 1.55);
+  display: grid;
+  place-items: center;
+}
 
 .card {
   width: var(--card-w);
   aspect-ratio: 2 / 3.1;
   perspective: 800px;
-  animation: deal 0.42s cubic-bezier(.2,.9,.3,1.2) backwards;
+  /* steps() en el reparto: se ve como animación de sprite, no como CSS. */
+  animation: deal 0.36s steps(6, end) backwards;
 }
 @keyframes deal {
-  from { opacity: 0; transform: translateY(40px) rotate(-8deg) scale(0.8); }
+  from { opacity: 0; transform: translateY(calc(var(--px) * 8)) scale(0.82); }
 }
 
 .card-inner {
   position: relative;
   height: 100%;
-  border-radius: var(--radius);
-  background: linear-gradient(165deg, #fdfbf4, #e6e1d2);
-  color: #1a1c28;
-  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.55), inset 0 0 0 2px rgba(0, 0, 0, 0.08);
+  clip-path: var(--pixel-corners);
+  --notch: calc(var(--px) * 2);
+  background: var(--ink-dark);          /* hace de contorno de la carta */
+  padding: var(--px);
+  filter: drop-shadow(var(--px) var(--px) 0 rgba(0, 0, 0, 0.55));
   transform-style: preserve-3d;
-  transition: transform 0.16s ease-out, box-shadow 0.2s;
+  transition: transform 0.12s steps(3, end);
+}
+
+/* La cara va adentro del contorno, no encima: así el borde negro mide
+   exactamente un píxel de la grilla en los cuatro lados. */
+.card-face {
+  position: relative;
+  height: 100%;
+  clip-path: var(--pixel-corners);
+  --notch: var(--px);
+  background: var(--card-face);
+  color: var(--ink-dark);
   overflow: hidden;
 }
+
+/* Brillo de banda dura en lugar de reflejo suave. */
 .card-glare {
   position: absolute;
   inset: 0;
   opacity: 0;
-  transition: opacity 0.2s;
-  background: radial-gradient(circle at var(--gx, 50%) var(--gy, 50%),
-              rgba(255, 255, 255, 0.85), transparent 55%);
-  mix-blend-mode: overlay;
+  transition: opacity 0.1s steps(2, end);
+  background: linear-gradient(
+    105deg,
+    transparent calc(var(--gx, 50%) - 13%),
+    rgba(255, 255, 255, 0.5) calc(var(--gx, 50%) - 5%),
+    rgba(255, 255, 255, 0.5) var(--gx, 50%),
+    transparent calc(var(--gx, 50%) + 6%)
+  );
   pointer-events: none;
 }
+
+/* Esquinas: número arriba del palo chiquito, como la baraja real. */
 .corner {
   position: absolute;
-  font-weight: 800;
-  font-size: clamp(14px, 2.4vw, 20px);
-  color: var(--suit);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  line-height: 1;
+  color: var(--suit-dark);
 }
-.corner.tl { top: 7px; left: 9px; }
-.corner.br { bottom: 7px; right: 9px; transform: rotate(180deg); }
-.pip {
+.corner b {
+  font-size: clamp(18px, 2.9vw, 28px);
+  font-weight: 700;
+}
+.corner.tl { top: calc(var(--px) * 1.5); left: calc(var(--px) * 1.5); }
+.corner.br { bottom: calc(var(--px) * 1.5); right: calc(var(--px) * 1.5); transform: rotate(180deg); }
+
+/* Los sprites se escalan a múltiplos enteros y sin suavizado. */
+.sprite {
+  display: block;
+  shape-rendering: crispEdges;
+  image-rendering: pixelated;
+}
+.sprite.mini { width: clamp(13px, 2.1vw, 20px); height: auto; }
+
+/* Marco interior donde vive la ilustración, igual que las cortes de Balatro. */
+.art-frame {
   position: absolute;
-  inset: 22% 18%;
-  fill: none;
-  stroke: var(--suit);
-  stroke-width: 6;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.25));
+  inset: 18% 13% 18% 13%;
 }
-.figure {
+/* Las figuras van dentro de un marco del color del palo, como las cortes de
+   Balatro. Los números no: ahí los palos flotan sueltos, como en la baraja. */
+.art-frame:has(.art) {
+  box-shadow: inset 0 0 0 var(--px) var(--suit);
+  background: var(--card-face);
+  padding: calc(var(--px) * 1.5);
+}
+.sprite.art {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.pip-slot {
   position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  font-size: clamp(30px, 6vw, 48px);
-  font-weight: 900;
-  color: var(--suit);
-  opacity: 0.22;
+  transform: translate(-50%, -50%);
 }
+.sprite.pip { width: clamp(16px, 2.7vw, 25px); height: auto; }
+/* Las cartas de pocos palos pueden permitirse palos más grandes. */
+.card[data-few='1'] .sprite.pip { width: clamp(46px, 7.8vw, 76px); }
+.card[data-few='2'] .sprite.pip { width: clamp(28px, 4.7vw, 45px); }
+.card[data-few='3'] .sprite.pip { width: clamp(23px, 3.9vw, 37px); }
+
 .card-name { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
 
+/* Dorso: trama pixel, sin degradados. */
 .card-back {
   background:
-    repeating-linear-gradient(45deg, #26306b 0 8px, #1b2250 8px 16px);
-  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.55), inset 0 0 0 3px #3b4694;
+    repeating-conic-gradient(from 0deg at 50% 50%,
+      #6248c4 0% 25%, #4a349c 0% 50%)
+      0 0 / calc(var(--px) * 2) calc(var(--px) * 2);
+  box-shadow:
+    inset 0 0 0 var(--px) var(--ink-dark),
+    inset 0 0 0 calc(var(--px) * 2) #5a49a8;
+  padding: 0;
 }
 
 /* mano propia: interactiva */
 .hand-human .card { cursor: pointer; }
-.hand-human .card:hover .card-inner { box-shadow: 0 18px 44px rgba(0, 0, 0, 0.6), 0 0 0 2px var(--accent); }
-.hand-human .card.disabled { filter: grayscale(0.7) brightness(0.6); pointer-events: none; }
-.card.played .card-inner { box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5); }
-.card.winner .card-inner { animation: glow 0.7s ease-out; }
+/* El hover salta de a un píxel entero: nada de translateY(-2px). */
+.hand-human .card:hover { transform: translateY(calc(var(--px) * -2)); }
+.hand-human .card:hover .card-inner { background: var(--gold); }
+.hand-human .card.disabled {
+  filter: grayscale(1) brightness(0.55);
+  pointer-events: none;
+}
+.card.winner .card-inner { animation: glow 0.6s steps(4, end); }
 @keyframes glow {
-  0%, 100% { box-shadow: 0 6px 18px rgba(0, 0, 0, 0.5); }
-  40% { box-shadow: 0 0 0 4px var(--win), 0 0 50px var(--win); transform: scale(1.08); }
+  0%, 100% { background: var(--ink-dark); }
+  50% { background: var(--green); transform: scale(1.06); }
 }
 
 /* ---------- acciones ---------- */
 .actions {
   display: flex;
-  gap: 10px;
+  gap: calc(var(--px) * 2);
   justify-content: center;
   flex-wrap: wrap;
-  min-height: 52px;
+  min-height: calc(var(--px) * 13);
+  align-items: center;
 }
+
+/* Botón con "cuerpo": luz arriba y sombra abajo que se hunde al apretar.
+   Es lo que hace que un botón plano se sienta físico. */
 button {
   font: inherit;
   font-weight: 700;
-  letter-spacing: 0.02em;
-  padding: 11px 22px;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  background: rgba(255, 255, 255, 0.07);
+  font-size: 0.86rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: calc(var(--px) * 2.5) calc(var(--px) * 4);
+  border: 0;
+  clip-path: var(--pixel-corners);
+  background: #4a349c;
   color: var(--ink);
   cursor: pointer;
-  transition: transform 0.12s, background 0.18s, box-shadow 0.18s;
+  box-shadow:
+    inset 0 calc(var(--px) * -1) 0 rgba(0, 0, 0, 0.45),
+    inset 0 var(--px) 0 rgba(255, 255, 255, 0.12);
+  transition: transform 0.06s steps(2, end), background 0.1s steps(2, end);
 }
-button:hover { transform: translateY(-2px); background: rgba(255, 255, 255, 0.14); }
-button:active { transform: translateY(1px) scale(0.97); }
-button.hot {
-  background: linear-gradient(140deg, #ff8a3d, #ff3d6e);
-  border-color: transparent;
-  box-shadow: 0 8px 26px rgba(255, 61, 110, 0.4);
-}
-button.good { background: linear-gradient(140deg, #2fd37a, #15a05a); border-color: transparent; }
-button.bad { background: rgba(255, 93, 122, 0.18); border-color: rgba(255, 93, 122, 0.45); }
+button:hover { background: #6248c4; transform: translateY(calc(var(--px) * -1)); }
+button:active { transform: translateY(var(--px)); }
+button:focus-visible { outline: var(--px) solid var(--gold); outline-offset: var(--px); }
+
+button.hot { background: var(--red); color: #fff2f4; }
+button.hot:hover { background: #f05570; }
+button.good { background: var(--green); color: #07240f; }
+button.good:hover { background: #52c565; }
+button.bad { background: #4a2c3c; color: #ffc6cf; }
+button.bad:hover { background: #5e374b; }
 
 .log {
   position: absolute;
   left: 50%;
-  bottom: 74px;
+  bottom: calc(var(--px) * 18);
   transform: translateX(-50%);
-  font-size: 0.86rem;
+  font-size: 0.8rem;
   color: var(--muted);
   text-align: center;
   pointer-events: none;
   max-width: 90%;
+  text-transform: uppercase;
 }
 
 /* ---------- carteles de canto ---------- */
@@ -237,24 +367,30 @@ button.bad { background: rgba(255, 93, 122, 0.18); border-color: rgba(255, 93, 1
   top: 38%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-size: clamp(2.4rem, 9vw, 5.5rem);
-  font-weight: 900;
-  letter-spacing: -0.03em;
+  font-size: clamp(1.6rem, 6vw, 3.6rem);
+  font-weight: 700;
   text-transform: uppercase;
   z-index: 40;
   pointer-events: none;
-  animation: slam 1.4s cubic-bezier(.15,1.6,.4,1) forwards;
-  text-shadow: 0 6px 30px rgba(0, 0, 0, 0.6);
+  /* Entra a los golpes, en pasos: pega más que un ease suave. */
+  animation: slam 1.3s steps(8, end) forwards;
+  /* Contorno pixel hecho a mano con cuatro sombras duras. */
+  text-shadow:
+    var(--px) 0 0 var(--ink-dark),
+    calc(var(--px) * -1) 0 0 var(--ink-dark),
+    0 var(--px) 0 var(--ink-dark),
+    0 calc(var(--px) * -1) 0 var(--ink-dark),
+    calc(var(--px) * 2) calc(var(--px) * 2) 0 rgba(0, 0, 0, 0.5);
 }
-.shout-truco { color: #ff6b4a; -webkit-text-stroke: 2px rgba(255, 255, 255, 0.9); }
-.shout-envido { color: #4aa8ff; -webkit-text-stroke: 2px rgba(255, 255, 255, 0.9); }
-.shout-good { color: var(--win); }
-.shout-bad { color: var(--lose); }
+.shout-truco { color: var(--red); }
+.shout-envido { color: var(--blue); }
+.shout-good { color: var(--green); }
+.shout-bad { color: var(--red); }
 @keyframes slam {
-  0% { opacity: 0; transform: translate(-50%, -50%) scale(2.6) rotate(-6deg); }
-  18% { opacity: 1; transform: translate(-50%, -50%) scale(1) rotate(-2deg); }
-  75% { opacity: 1; transform: translate(-50%, -50%) scale(1.02); }
-  100% { opacity: 0; transform: translate(-50%, -70%) scale(0.9); }
+  0% { opacity: 0; transform: translate(-50%, -50%) scale(2.4); }
+  20% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  76% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -62%) scale(1); }
 }
 
 /* ---------- overlay ---------- */
@@ -263,28 +399,39 @@ button.bad { background: rgba(255, 93, 122, 0.18); border-color: rgba(255, 93, 1
   inset: 0;
   display: grid;
   place-items: center;
-  background: rgba(6, 9, 20, 0.82);
-  backdrop-filter: blur(8px);
+  background: rgba(10, 7, 18, 0.86);
   z-index: 60;
 }
 .overlay[hidden] { display: none; }
 .overlay-card {
   text-align: center;
-  padding: 36px 44px;
-  border-radius: 22px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  animation: deal 0.4s cubic-bezier(.2,.9,.3,1.2);
+  padding: calc(var(--px) * 8) calc(var(--px) * 10);
+  clip-path: var(--pixel-corners);
+  --notch: calc(var(--px) * 2);
+  background: #2a1a5e;
+  box-shadow: inset 0 0 0 var(--px) var(--line);
+  animation: deal 0.3s steps(5, end);
 }
-.overlay-card h1 { margin: 0 0 8px; font-size: clamp(2rem, 7vw, 3.4rem); }
-.overlay-card p { margin: 0 0 22px; color: var(--muted); }
+.overlay-card h1 {
+  margin: 0 0 calc(var(--px) * 2);
+  font-size: clamp(1.3rem, 5vw, 2.4rem);
+  text-transform: uppercase;
+  text-shadow: var(--px) var(--px) 0 rgba(0, 0, 0, 0.5);
+}
+.overlay-card p {
+  margin: 0 0 calc(var(--px) * 6);
+  color: var(--muted);
+  font-size: 0.86rem;
+}
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before { animation: none !important; transition: none !important; }
+
 }
 
 @media (max-width: 560px) {
+  :root { --px: 3px; }
   .num { font-size: 1.4rem; }
-  button { padding: 9px 15px; font-size: 0.9rem; }
-  .log { bottom: 66px; }
+  button { font-size: 0.74rem; padding: calc(var(--px) * 3) calc(var(--px) * 4); }
+  .log { bottom: calc(var(--px) * 20); }
 }

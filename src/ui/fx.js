@@ -3,6 +3,10 @@
 
 const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+// Tamaño del píxel lógico: tiene que coincidir con --px del CSS.
+const PX = 4;
+const snap = (v) => Math.round(v / PX) * PX;
+
 export class Fx {
   constructor(canvas, stage) {
     this.canvas = canvas;
@@ -35,7 +39,7 @@ export class Fx {
         vy: Math.sin(a) * s - 2,
         life: 1,
         decay: 0.012 + Math.random() * 0.02,
-        size: 2 + Math.random() * 4,
+        size: PX * (1 + Math.floor(Math.random() * 2)),
         hue: hue + (Math.random() - 0.5) * 40,
       });
     }
@@ -73,9 +77,12 @@ export class Fx {
       p.y += p.vy;
       p.life -= p.decay;
       if (p.life <= 0) { this.particles.splice(i, 1); continue; }
-      ctx.globalAlpha = Math.max(0, p.life);
-      ctx.fillStyle = `hsl(${p.hue} 95% ${55 + p.life * 20}%)`;
-      ctx.fillRect(p.x, p.y, p.size, p.size * 1.6);
+      // Las partículas también son pixelart: cuadrados enteros, clavados a la
+      // grilla y con cuatro niveles de alfa. Un degradado continuo acá rompe
+      // el look igual que un borde redondeado.
+      ctx.globalAlpha = Math.ceil(Math.max(0, p.life) * 4) / 4;
+      ctx.fillStyle = `hsl(${Math.round(p.hue / 15) * 15} 90% ${p.life > 0.5 ? 68 : 52}%)`;
+      ctx.fillRect(snap(p.x), snap(p.y), p.size, p.size);
     }
     ctx.globalAlpha = 1;
 
