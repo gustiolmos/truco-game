@@ -6,6 +6,7 @@ import { chooseAction } from './core/ai.js';
 import { ENVIDO_CALLS } from './core/envido.js';
 import { renderCard } from './ui/card.js';
 import { Fx, countUp } from './ui/fx.js';
+import { audio, armAudio } from './ui/audio.js';
 
 const $ = (id) => document.getElementById(id);
 const el = {
@@ -14,6 +15,7 @@ const el = {
   slotHuman: $('slot-human'), slotCpu: $('slot-cpu'),
   numHuman: $('num-human'), numCpu: $('num-cpu'),
   pot: $('pot'), tricks: $('tricks'),
+  mute: $('mute'),
   overlay: $('overlay'), oTitle: $('overlay-title'), oText: $('overlay-text'), oBtn: $('overlay-btn'),
 };
 
@@ -43,6 +45,7 @@ function startRoundUI() {
     el.handCpu.appendChild(c);
   });
   drawHumanHand();
+  dealSounds();
   say(game.mano === HUMAN ? 'Sos mano.' : 'Es mano el rival.');
   render();
   if (game.turn === CPU) queueCpu();
@@ -54,8 +57,21 @@ function drawHumanHand() {
     const c = renderCard(card);
     c.style.animationDelay = `${i * 70}ms`;
     c.addEventListener('click', () => human({ type: 'play', cardId: card.id }));
+    c.addEventListener('pointerenter', () => {
+      if (!c.classList.contains('disabled')) audio.play('hover');
+    });
     el.handHuman.appendChild(c);
   });
+}
+
+// El reparto acompaña a la animación de las cartas: una toma por carta,
+// escalonada igual que el deal del CSS. Sonar todo junto lo aplana.
+function dealSounds() {
+  audio.play('shuffle');
+  const total = game.hands[HUMAN].length + game.hands[CPU].length;
+  for (let i = 0; i < total; i++) {
+    setTimeout(() => audio.play('deal'), 140 + i * 70);
+  }
 }
 
 // ---- entrada del jugador ---------------------------------------------
@@ -115,7 +131,8 @@ function renderActions(legal) {
     const b = document.createElement('button');
     b.textContent = label;
     if (cls) b.className = cls;
-    b.addEventListener('click', () => human(action));
+    b.addEventListener('click', () => { audio.play('click'); human(action); });
+    b.addEventListener('pointerenter', () => audio.play('hover'));
     el.actions.appendChild(b);
   };
 
@@ -147,14 +164,16 @@ function onEvent(e) {
       if (e.player === HUMAN) drawHumanHand();
       else el.handCpu.lastElementChild?.remove();
       fx.burstAt(node, { count: 12, hue: 200, power: 4 });
+      audio.play('play');
       break;
     }
     case 'trick-end': {
-      if (e.result === 'parda') { say('Parda.'); break; }
+      if (e.result === 'parda') { say('Parda.'); audio.play('reject', { volume: 0.6 }); break; }
       const slot = TRICK_SLOT[e.result];
       slot.firstElementChild?.classList.add('winner');
       fx.burstAt(slot, { count: 26, hue: e.result === HUMAN ? 120 : 350, power: 6 });
       fx.kick(e.result === HUMAN ? 9 : 6);
+      audio.play(e.result === HUMAN ? 'trickWin' : 'trickLose');
       say(e.result === HUMAN ? 'Ganaste la mano.' : 'Se la lleva el rival.');
       break;
     }
@@ -163,25 +182,30 @@ function onEvent(e) {
         ? TRUCO_CHAIN.find((t) => t.key === e.call).label
         : ENVIDO_CALLS[e.call].label;
       fx.shout(label + '!', { tone: e.kind });
+      audio.play(e.kind === 'truco' ? 'truco' : 'envido');
       say(`${e.player === HUMAN ? 'Cantaste' : 'El rival canta'} ${label}.`);
       break;
     }
     case 'truco-accepted':
       say('Quiero. Sube la apuesta.');
       fx.kick(8);
+      audio.play('accept');
       break;
     case 'truco-rejected':
       fx.shout('No quiero', { tone: e.winner === HUMAN ? 'good' : 'bad' });
+      audio.play('reject');
       break;
     case 'envido-showdown': {
       const mine = e.points[HUMAN];
       const theirs = e.points[CPU];
       fx.shout(`${e.winner === HUMAN ? mine : theirs} son mejores`,
         { tone: e.winner === HUMAN ? 'good' : 'bad' });
+      audio.play(e.winner === HUMAN ? 'trickWin' : 'trickLose');
       say(`Vos ${mine} · Rival ${theirs}`);
       break;
     }
     case 'envido-rejected':
+      audio.play('reject');
       say(`No quiero el envido: ${e.value} para ${e.winner === HUMAN ? 'vos' : 'el rival'}.`);
       break;
     case 'round-end':
@@ -191,13 +215,17 @@ function onEvent(e) {
     case 'score': {
       const node = e.player === HUMAN ? el.numHuman : el.numCpu;
       const from = e.scores[e.player] - e.points;
+      let step = 0;
       countUp(node, from, e.scores[e.player], () => {
         fx.burstAt(node, { count: 14, hue: e.player === HUMAN ? 50 : 340, power: 5 });
         fx.kick(7);
+        audio.play('point', { volume: 0.8 + step * 0.06, spread: 0 });
+        step++;
       });
       break;
     }
     case 'game-over':
+      audio.play(e.winner === HUMAN ? 'gameWin' : 'gameLose');
       setTimeout(() => showOverlay(
         e.winner === HUMAN ? '¡Ganaste!' : 'Perdiste',
         `${game.scores[HUMAN]} a ${game.scores[CPU]}`,
@@ -218,7 +246,7 @@ function showOverlay(title, text, btn, onClick) {
   el.oTitle.textContent = title;
   el.oText.textContent = text;
   el.oBtn.textContent = btn;
-  el.oBtn.onclick = onClick;
+  el.oBtn.onclick = () => { audio.play('click'); onClick(); };
   el.overlay.hidden = false;
   if (title.startsWith('¡Gan')) {
     for (let i = 0; i < 6; i++) {
@@ -228,4 +256,14 @@ function showOverlay(title, text, btn, onClick) {
   }
 }
 
+// Botón de silencio. El estado queda guardado entre partidas.
+function paintMute() {
+  el.mute.textContent = audio.muted ? 'Mudo' : 'Sonido';
+  el.mute.setAttribute('aria-pressed', String(audio.muted));
+  el.mute.classList.toggle('is-muted', audio.muted);
+}
+el.mute.addEventListener('click', () => { audio.toggle(); paintMute(); });
+paintMute();
+
+armAudio();
 showOverlay('Truco', 'Primero a 15 puntos. Envido y truco incluidos.', 'Jugar', newGame);

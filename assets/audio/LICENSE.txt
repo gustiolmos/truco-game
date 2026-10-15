@@ -1,0 +1,25 @@
+Sonidos de Kenney (kenney.nl) — Creative Commons Zero (CC0 1.0).
+http://creativecommons.org/publicdomain/zero/1.0/
+
+Uso personal y comercial permitido, sin regalías. El crédito a Kenney no es
+obligatorio, pero lo damos igual: los pondremos en los créditos del juego.
+
+De "Casino Audio" (1.1):
+  deal-1/2/3.ogg  <- card-slide-1/3/5.ogg
+  play-1/2/3.ogg  <- card-place-1/2/4.ogg
+  shuffle.ogg     <- card-shuffle.ogg
+
+De "Interface Sounds":
+  shout-truco.ogg  <- bong_001.ogg
+  shout-envido.ogg <- pluck_001.ogg
+  accept.ogg       <- confirmation_001.ogg
+  reject.ogg       <- back_002.ogg
+  trick-win.ogg    <- maximize_003.ogg
+  trick-lose.ogg   <- error_006.ogg
+  point.ogg        <- confirmation_004.ogg
+  click.ogg        <- click_001.ogg
+  hover.ogg        <- tick_002.ogg
+  game-win.ogg     <- confirmation_002.ogg
+  game-lose.ogg    <- error_008.ogg
+
+Solo se renombraron. Los archivos no fueron editados.

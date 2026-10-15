@@ -151,6 +151,19 @@ body::before {
 .tricks i.l { background: var(--red); }
 .tricks i.p { background: var(--muted); }
 
+/* Silencio: discreto, pero siempre a la vista. Un juego que no se puede
+   callar es un juego que se cierra. */
+.mute {
+  margin-top: calc(var(--px) * 2);
+  font-size: 0.56rem;
+  padding: var(--px) calc(var(--px) * 2);
+  background: #2a1a5e;
+  color: var(--muted);
+  box-shadow: inset 0 0 0 var(--px) var(--line);
+}
+.mute:hover { background: #3d2a7a; color: var(--ink); transform: none; }
+.mute.is-muted { color: var(--red); }
+
 /* ---------- cartas ---------- */
 .hand, .table {
   display: flex;
