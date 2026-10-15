@@ -29,6 +29,10 @@ más adelante, correr el mismo motor en un servidor para multijugador.
 | `src/ui/audio.js` | bus de Web Audio: variantes por gesto, silencio persistente |
 | `src/ui/flags.js` | banderas 16x12 en pixelart (los emoji de bandera no andan en Windows) |
 | `src/i18n/` | textos por idioma y selección; el motor no tiene texto visible |
+
+La configuración (sonido, volumen, idioma) y salir de la partida viven en el
+menú de pausa, no sobre la mesa. Se abre con el botón del HUD o con Escape.
+
 | `src/main.js` | pegamento: eventos → efectos, clics → acciones |
 
 ## Reglas implementadas

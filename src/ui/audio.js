@@ -41,13 +41,17 @@ const GAIN = {
   gameWin: 0.9, gameLose: 0.8,
 };
 
-const STORAGE_KEY = 'truco.muted';
+const MUTED_KEY = 'truco.muted';
+const VOLUME_KEY = 'truco.volume';
 
-const readMuted = () => {
-  try { return localStorage.getItem(STORAGE_KEY) === '1'; } catch { return false; }
+const read = (key, fallback) => {
+  try {
+    const v = localStorage.getItem(key);
+    return v === null ? fallback : v;
+  } catch { return fallback; }
 };
-const writeMuted = (v) => {
-  try { localStorage.setItem(STORAGE_KEY, v ? '1' : '0'); } catch { /* modo privado */ }
+const write = (key, value) => {
+  try { localStorage.setItem(key, String(value)); } catch { /* modo privado */ }
 };
 
 class AudioBus {
@@ -55,7 +59,9 @@ class AudioBus {
     this.ctx = null;
     this.master = null;
     this.buffers = new Map();
-    this.muted = readMuted();
+    this.muted = read(MUTED_KEY, '0') === '1';
+    const vol = Number(read(VOLUME_KEY, '0.8'));
+    this.volume = Number.isFinite(vol) ? Math.min(1, Math.max(0, vol)) : 0.8;
     this.ready = false;
   }
 
@@ -71,7 +77,7 @@ class AudioBus {
     try {
       this.ctx = new Ctx();
       this.master = this.ctx.createGain();
-      this.master.gain.value = this.muted ? 0 : 1;
+      this.master.gain.value = this.#level();
       this.master.connect(this.ctx.destination);
       await this.#loadAll();
       this.ready = true;
@@ -113,10 +119,25 @@ class AudioBus {
     src.start();
   }
 
+  #level() { return this.muted ? 0 : this.volume; }
+
+  #applyLevel() {
+    if (this.master) this.master.gain.value = this.#level();
+  }
+
   setMuted(muted) {
     this.muted = muted;
-    writeMuted(muted);
-    if (this.master) this.master.gain.value = muted ? 0 : 1;
+    write(MUTED_KEY, muted ? '1' : '0');
+    this.#applyLevel();
+  }
+
+  // Volumen 0..1. Mover la perilla a cero equivale a silenciar, pero se
+  // guardan por separado: si subís el volumen con el sonido apagado y después
+  // lo prendés, tiene que sonar a lo que elegiste.
+  setVolume(volume) {
+    this.volume = Math.min(1, Math.max(0, volume));
+    write(VOLUME_KEY, this.volume);
+    this.#applyLevel();
   }
 
   toggle() {

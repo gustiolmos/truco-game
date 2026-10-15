@@ -11,6 +11,7 @@
 
 <div id="stage">
   <header class="hud">
+    <button class="menu-btn" id="menu-btn" type="button">☰</button>
     <div class="score" id="score-cpu">
       <span class="who" id="who-rival">Rival</span>
       <span class="num" id="num-cpu">0</span>
@@ -18,10 +19,6 @@
     <div class="round-info">
       <div class="pot" id="pot">1 punto en juego</div>
       <div class="tricks" id="tricks"></div>
-      <div class="bar">
-        <div class="langs" id="langs-hud"></div>
-        <button class="mute" id="mute" type="button" aria-pressed="false">Sonido</button>
-      </div>
     </div>
     <div class="hud-right">
       <div class="envido" id="envido" title="Tus puntos de envido, ya sumados">
@@ -44,6 +41,32 @@
 
   <footer class="actions" id="actions"></footer>
   <div class="log" id="log"></div>
+</div>
+
+<div class="overlay" id="menu" hidden>
+  <div class="overlay-card menu-card">
+    <h1 id="menu-title"></h1>
+
+    <div class="setting">
+      <span class="setting-label" id="label-sound"></span>
+      <button class="toggle" id="menu-sound" type="button" aria-pressed="true"></button>
+    </div>
+
+    <div class="setting">
+      <span class="setting-label" id="label-volume"></span>
+      <input class="slider" id="menu-volume" type="range" min="0" max="100" step="5">
+    </div>
+
+    <div class="setting">
+      <span class="setting-label" id="label-language"></span>
+      <div class="langs" id="langs-menu"></div>
+    </div>
+
+    <div class="menu-actions">
+      <button class="good" id="menu-resume" type="button"></button>
+      <button class="bad" id="menu-quit" type="button"></button>
+    </div>
+  </div>
 </div>
 
 <div class="overlay" id="overlay" hidden>

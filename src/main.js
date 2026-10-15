@@ -19,8 +19,12 @@ const el = {
   pot: $('pot'), tricks: $('tricks'),
   envido: $('envido'), envidoNum: $('envido-num'),
   whoRival: $('who-rival'), whoYou: $('who-you'), whoEnvido: $('who-envido'),
-  langsHud: $('langs-hud'), langsOverlay: $('langs-overlay'),
-  mute: $('mute'),
+  langsOverlay: $('langs-overlay'), langsMenu: $('langs-menu'),
+  menuBtn: $('menu-btn'), menu: $('menu'), menuTitle: $('menu-title'),
+  menuSound: $('menu-sound'), menuVolume: $('menu-volume'),
+  menuResume: $('menu-resume'), menuQuit: $('menu-quit'),
+  labelSound: $('label-sound'), labelVolume: $('label-volume'),
+  labelLanguage: $('label-language'),
   overlay: $('overlay'), oTitle: $('overlay-title'), oText: $('overlay-text'), oBtn: $('overlay-btn'),
 };
 
@@ -83,7 +87,7 @@ function dealSounds() {
 // ---- entrada del jugador ---------------------------------------------
 
 function human(action) {
-  if (busy || game.turn !== HUMAN || !game.isLegal(HUMAN, action)) return;
+  if (!game || paused || busy || game.turn !== HUMAN || !game.isLegal(HUMAN, action)) return;
   busy = true;
   game.act(HUMAN, action);
   render();
@@ -92,6 +96,8 @@ function human(action) {
 
 async function afterAction() {
   await sleep(260);
+  await pauseGate();
+  if (!game) return;                       // se abandonó la partida mientras tanto
   if (game.winner !== null) { busy = false; return; }
   if (game.roundOver) { busy = false; return nextRoundPrompt(); }
   if (game.turn === CPU) return queueCpu();
@@ -103,6 +109,8 @@ async function queueCpu() {
   busy = true;
   render();
   await sleep(520 + Math.random() * 420);
+  await pauseGate();
+  if (!game) return;
   const action = chooseAction(game);
   if (action) game.act(CPU, action);
   render();
@@ -112,6 +120,7 @@ async function queueCpu() {
 // ---- render -----------------------------------------------------------
 
 function render() {
+  if (!game) return;
   // marcador de manos ganadas
   el.tricks.innerHTML = game.trickResults
     .map((r) => `<i class="${r === HUMAN ? 'w' : r === CPU ? 'l' : 'p'}"></i>`)
@@ -260,8 +269,9 @@ function onEvent(e) {
 }
 
 function nextRoundPrompt() {
-  setTimeout(() => {
-    if (game.winner !== null) return;
+  setTimeout(async () => {
+    await pauseGate();
+    if (!game || game.winner !== null) return;
     game.nextRound();
     startRoundUI();
   }, 1100);
@@ -327,24 +337,117 @@ function paintAll() {
   el.whoYou.textContent = t('hud.you');
   el.whoEnvido.textContent = t('hud.envido');
   el.envido.title = t('hud.envidoTip');
-  paintMute();
   paintOverlay();
-  for (const c of [el.langsHud, el.langsOverlay]) paintLangPicker(c);
+  paintMenu();
+  for (const c of [el.langsOverlay, el.langsMenu]) paintLangPicker(c);
   if (game) render();
 }
 
 onLocaleChange(paintAll);
 
-// Botón de silencio. El estado queda guardado entre partidas.
-function paintMute() {
-  el.mute.textContent = audio.muted ? t('hud.muted') : t('hud.sound');
-  el.mute.setAttribute('aria-pressed', String(audio.muted));
-  el.mute.classList.toggle('is-muted', audio.muted);
-}
-el.mute.addEventListener('click', () => { audio.toggle(); paintMute(); });
-paintMute();
+// ---- menú de pausa y configuración ------------------------------------
 
-for (const c of [el.langsHud, el.langsOverlay]) buildLangPicker(c);
+// Con el menú abierto la partida se queda quieta. Si no, los temporizadores
+// del rival siguen corriendo y al cerrar te encontrás con que cantó, tiró y
+// te ganó la mano mientras mirabas el volumen.
+let paused = false;
+let waiters = [];
+
+const pauseGate = () => (paused ? new Promise((r) => waiters.push(r)) : null);
+
+function setPaused(value) {
+  paused = value;
+  if (!value) {
+    const pending = waiters;
+    waiters = [];
+    for (const resume of pending) resume();
+  }
+}
+
+function openMenu() {
+  if (!el.overlay.hidden) return;   // ya hay un cartel propio en pantalla
+  quitArmed = false;
+  setPaused(true);
+  paintMenu();
+  el.menu.hidden = false;
+  el.menuResume.focus();
+}
+
+function closeMenu() {
+  el.menu.hidden = true;
+  quitArmed = false;
+  setPaused(false);
+  render();
+}
+
+// "Abandonar" pide confirmación en el mismo botón: un clic lo arma, el
+// segundo lo ejecuta. Perder una partida por un clic de más sería feo.
+let quitArmed = false;
+
+function paintMenu() {
+  el.menuTitle.textContent = t('menu.title');
+  el.labelSound.textContent = t('menu.sound');
+  el.labelVolume.textContent = t('menu.volume');
+  el.labelLanguage.textContent = t('menu.language');
+  el.menuResume.textContent = t('menu.resume');
+  el.menuQuit.hidden = !game;
+  el.menuQuit.textContent = quitArmed ? t('menu.quitConfirm') : t('menu.quit');
+  el.menuQuit.classList.toggle('armed', quitArmed);
+
+  el.menuSound.textContent = audio.muted ? t('menu.off') : t('menu.on');
+  el.menuSound.setAttribute('aria-pressed', String(!audio.muted));
+  el.menuSound.classList.toggle('is-off', audio.muted);
+  el.menuVolume.value = String(Math.round(audio.volume * 100));
+  el.menuBtn.setAttribute('aria-label', t('menu.open'));
+}
+
+el.menuBtn.addEventListener('click', () => { audio.play('click'); openMenu(); });
+el.menuResume.addEventListener('click', () => { audio.play('click'); closeMenu(); });
+
+el.menuSound.addEventListener('click', () => {
+  audio.setMuted(!audio.muted);
+  audio.play('click');          // suena recién si quedó encendido
+  paintMenu();
+});
+
+el.menuVolume.addEventListener('input', () => {
+  audio.setVolume(Number(el.menuVolume.value) / 100);
+});
+// El sonido de muestra va al soltar, no en cada pixel del arrastre.
+el.menuVolume.addEventListener('change', () => audio.play('point'));
+
+el.menuQuit.addEventListener('click', () => {
+  audio.play('click');
+  if (!quitArmed) { quitArmed = true; paintMenu(); return; }
+  quitMatch();
+});
+
+// Salir de la partida: vuelve a la pantalla de inicio con la mesa limpia.
+function quitMatch() {
+  el.menu.hidden = true;
+  quitArmed = false;
+  setPaused(false);
+  game = null;
+  busy = false;
+  lastEnvido = null;
+  TRICK_SLOT.forEach((s) => (s.innerHTML = ''));
+  el.handCpu.innerHTML = '';
+  el.handHuman.innerHTML = '';
+  el.actions.innerHTML = '';
+  el.tricks.innerHTML = '';
+  say('');
+  el.numHuman.textContent = '0';
+  el.numCpu.textContent = '0';
+  showOverlay('game.title', ['game.subtitle'], 'game.play', newGame);
+}
+
+window.addEventListener('keydown', (e) => {
+  if (e.key !== 'Escape') return;
+  if (!el.menu.hidden) closeMenu();
+  else if (el.overlay.hidden) openMenu();
+});
+
+for (const c of [el.langsOverlay, el.langsMenu]) buildLangPicker(c);
 paintAll();
 
 armAudio();
