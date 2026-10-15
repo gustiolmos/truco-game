@@ -1,22 +1,13 @@
 /* ------------------------------------------------------------------
-   Pixelart. Tres reglas que no se rompen:
-   1. Nada de curvas: los cantos se hacen con escalones de --px.
-   2. Nada de blur: las sombras son desplazamientos duros.
-   3. Todo medido en múltiplos de --px, para que nada caiga entre píxeles.
-   ------------------------------------------------------------------ */
+   Interfaz limpia con un guiño pixel, no un juego pixelart.
 
-@font-face {
-  font-family: 'Silkscreen';
-  src: url('../assets/fonts/Silkscreen-Regular.ttf') format('truetype');
-  font-weight: 400;
-  font-display: block;
-}
-@font-face {
-  font-family: 'Silkscreen';
-  src: url('../assets/fonts/Silkscreen-Bold.ttf') format('truetype');
-  font-weight: 700;
-  font-display: block;
-}
+   El pixel vive en el arte de las cartas (los palos y las figuras) y en
+   ningún otro lado: la tipografía es la del sistema, los cantos son curvas
+   y los tamaños se leen cómodos. Lo que hacía que TODO se viera pixelado
+   era la fuente y los bordes escalonados, no los dibujos.
+
+   --px sigue siendo la unidad de espaciado, pero ya no es dogma.
+   ------------------------------------------------------------------ */
 
 :root {
   --px: 4px;
@@ -37,17 +28,11 @@
   --card-face: #fffaf0;
 
   --card-w: clamp(100px, 15vw, 158px);
-  --notch: var(--px);
+  /* Tipografía del sistema: sin descarga, y en cada equipo se ve nativa. */
+  --font: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
 
-  /* Cantos escalonados reutilizables: --notch se puede pisar por elemento. */
-  --pixel-corners: polygon(
-    var(--notch) 0, calc(100% - var(--notch)) 0,
-    calc(100% - var(--notch)) var(--notch), 100% var(--notch),
-    100% calc(100% - var(--notch)), calc(100% - var(--notch)) calc(100% - var(--notch)),
-    calc(100% - var(--notch)) 100%, var(--notch) 100%,
-    var(--notch) calc(100% - var(--notch)), 0 calc(100% - var(--notch)),
-    0 var(--notch), var(--notch) var(--notch)
-  );
+  --r: 12px;        /* paneles y cartas */
+  --r-sm: 8px;      /* botones y fichas */
 }
 
 * { box-sizing: border-box; }
@@ -58,10 +43,9 @@ html, body {
   overflow: hidden;
   background: var(--bg);
   color: var(--ink);
-  font-family: 'Silkscreen', 'Courier New', monospace;
-  /* El antialias es el enemigo del pixelart. */
-  -webkit-font-smoothing: none;
-  font-smooth: never;
+  font-family: var(--font);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* Fondo: foco de luz saturado detrás de la mesa. Nada que se superponga al
@@ -107,7 +91,7 @@ body::before {
   gap: calc(var(--px) * 2);
   padding: calc(var(--px) * 2) calc(var(--px) * 3);
   width: fit-content;
-  clip-path: var(--pixel-corners);
+  border-radius: var(--r);
   background: #2a1a5e;
   box-shadow: inset 0 0 0 var(--px) var(--line);
 }
@@ -126,7 +110,7 @@ body::before {
   align-items: center;
   gap: calc(var(--px) * 2);
   padding: calc(var(--px) * 2) calc(var(--px) * 3);
-  clip-path: var(--pixel-corners);
+  border-radius: var(--r);
   background: #2a1a5e;
   box-shadow: inset 0 0 0 var(--px) var(--blue);
 }
@@ -144,7 +128,8 @@ body::before {
 .envido-num.pulse { animation: pop 0.3s steps(4, end); }
 
 .who {
-  font-size: 0.74rem;
+  font-size: 0.68rem;
+  font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--muted);
@@ -164,10 +149,9 @@ body::before {
 
 .round-info { text-align: center; }
 .pot {
-  font-weight: 700;
+  font-weight: 600;
   font-size: 0.95rem;
   color: var(--gold);
-  text-transform: uppercase;
   /* "Glow" pixelado: sombra dura desplazada, no un halo difuso. */
   text-shadow: var(--px) var(--px) 0 rgba(0, 0, 0, 0.5);
 }
@@ -175,6 +159,7 @@ body::before {
 .tricks i {
   width: calc(var(--px) * 3);
   height: calc(var(--px) * 3);
+  border-radius: 50%;
   background: #3d2a7a;
   box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.45);
 }
@@ -196,6 +181,8 @@ body::before {
 .langs { display: flex; gap: var(--px); }
 .lang {
   padding: var(--px);
+  border-radius: var(--r-sm);
+  overflow: hidden;
   background: #2a1a5e;
   box-shadow: inset 0 0 0 1px var(--line);
   line-height: 0;
@@ -226,7 +213,7 @@ body::before {
    callar es un juego que se cierra. */
 .mute {
   margin-top: calc(var(--px) * 2);
-  font-size: 0.56rem;
+  font-size: 0.66rem;
   padding: var(--px) calc(var(--px) * 2);
   background: #2a1a5e;
   color: var(--muted);
@@ -249,8 +236,7 @@ body::before {
     repeating-linear-gradient(45deg,
       rgba(53, 211, 95, 0.1) 0 var(--px),
       transparent var(--px) calc(var(--px) * 2));
-  clip-path: var(--pixel-corners);
-  --notch: calc(var(--px) * 2);
+  border-radius: var(--r);
 }
 .slot {
   min-width: var(--card-w);
@@ -273,8 +259,7 @@ body::before {
 .card-inner {
   position: relative;
   height: 100%;
-  clip-path: var(--pixel-corners);
-  --notch: calc(var(--px) * 2);
+  border-radius: var(--r);
   background: var(--ink-dark);          /* hace de contorno de la carta */
   padding: var(--px);
   filter: drop-shadow(var(--px) var(--px) 0 rgba(0, 0, 0, 0.55));
@@ -287,8 +272,7 @@ body::before {
 .card-face {
   position: relative;
   height: 100%;
-  clip-path: var(--pixel-corners);
-  --notch: var(--px);
+  border-radius: calc(var(--r) - var(--px));
   background: var(--card-face);
   color: var(--ink-dark);
   overflow: hidden;
@@ -321,7 +305,7 @@ body::before {
   color: var(--suit-dark);
 }
 .corner b {
-  font-size: clamp(18px, 2.9vw, 28px);
+  font-size: clamp(16px, 2.6vw, 25px);
   font-weight: 700;
 }
 .corner.tl { top: calc(var(--px) * 1.5); left: calc(var(--px) * 1.5); }
@@ -407,12 +391,11 @@ body::before {
 button {
   font: inherit;
   font-weight: 700;
-  font-size: 0.86rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  font-size: 0.84rem;
+  letter-spacing: 0.02em;
   padding: calc(var(--px) * 2.5) calc(var(--px) * 4);
   border: 0;
-  clip-path: var(--pixel-corners);
+  border-radius: var(--r-sm);
   background: #4a349c;
   color: var(--ink);
   cursor: pointer;
@@ -437,12 +420,11 @@ button.bad:hover { background: #5e374b; }
   left: 50%;
   bottom: calc(var(--px) * 18);
   transform: translateX(-50%);
-  font-size: 0.8rem;
+  font-size: 0.88rem;
   color: var(--muted);
   text-align: center;
   pointer-events: none;
   max-width: 90%;
-  text-transform: uppercase;
 }
 
 /* ---------- carteles de canto ---------- */
@@ -490,16 +472,15 @@ button.bad:hover { background: #5e374b; }
 .overlay-card {
   text-align: center;
   padding: calc(var(--px) * 8) calc(var(--px) * 10);
-  clip-path: var(--pixel-corners);
-  --notch: calc(var(--px) * 2);
+  border-radius: var(--r);
   background: #2a1a5e;
   box-shadow: inset 0 0 0 var(--px) var(--line);
   animation: deal 0.3s steps(5, end);
 }
 .overlay-card h1 {
   margin: 0 0 calc(var(--px) * 2);
-  font-size: clamp(1.3rem, 5vw, 2.4rem);
-  text-transform: uppercase;
+  font-size: clamp(1.4rem, 5vw, 2.6rem);
+  letter-spacing: -0.01em;
   text-shadow: var(--px) var(--px) 0 rgba(0, 0, 0, 0.5);
 }
 .overlay-card p {
@@ -515,11 +496,11 @@ button.bad:hover { background: #5e374b; }
 
 @media (max-width: 560px) {
   :root { --px: 3px; }
-  .num, .envido-num { font-size: 1.4rem; }
+  .num, .envido-num { font-size: 1.5rem; }
   /* En pantalla chica el rótulo "Envido" se come el ancho del marcador.
      El número solo, en azul y pegado al marcador, se entiende igual. */
   .envido .who { display: none; }
   .hud { gap: calc(var(--px) * 2); }
-  button { font-size: 0.74rem; padding: calc(var(--px) * 3) calc(var(--px) * 4); }
+  button { font-size: 0.78rem; padding: calc(var(--px) * 3) calc(var(--px) * 4); }
   .log { bottom: calc(var(--px) * 20); }
 }
