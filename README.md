@@ -1,0 +1,32 @@
+# Truco
+
+Truco argentino 1v1 contra la máquina, en el navegador. Sin dependencias.
+
+```
+node serve.mjs      # http://localhost:5173
+node test/selfplay.mjs
+```
+
+## Arquitectura
+
+El motor no conoce el DOM. Recibe acciones, valida y emite eventos; la UI se
+suscribe y los traduce en efectos. Eso permite testear reglas sin navegador y,
+más adelante, correr el mismo motor en un servidor para multijugador.
+
+| Archivo | Rol |
+| --- | --- |
+| `src/core/deck.js` | 40 cartas y jerarquía del truco |
+| `src/core/envido.js` | puntos de envido y valores de la cadena de cantos |
+| `src/core/game.js` | máquina de estados de la ronda y el puntaje |
+| `src/core/ai.js` | rival heurístico (fuerza de mano + ruido para mentir) |
+| `src/ui/card.js` | carta en DOM con inclinación 3D por puntero |
+| `src/ui/fx.js` | partículas, sacudida de pantalla, carteles de canto |
+| `src/main.js` | pegamento: eventos → efectos, clics → acciones |
+
+## Reglas implementadas
+
+Jerarquía completa, tres manos con pardas, envido / real envido / falta envido
+con cadena de recantos, truco / retruco / vale cuatro, puntos por "no quiero",
+mano alternada, partida a 15.
+
+Falta: flor, partidas a 30 con buenas y malas, 2v2, multijugador.

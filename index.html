@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Truco</title>
+<link rel="stylesheet" href="src/style.css">
+</head>
+<body>
+<canvas id="fx"></canvas>
+
+<div id="stage">
+  <header class="hud">
+    <div class="score" id="score-cpu">
+      <span class="who">Rival</span>
+      <span class="num" id="num-cpu">0</span>
+    </div>
+    <div class="round-info">
+      <div class="pot" id="pot">1 punto en juego</div>
+      <div class="tricks" id="tricks"></div>
+    </div>
+    <div class="score" id="score-human">
+      <span class="who">Vos</span>
+      <span class="num" id="num-human">0</span>
+    </div>
+  </header>
+
+  <section class="hand hand-cpu" id="hand-cpu"></section>
+  <section class="table">
+    <div class="slot" id="slot-cpu"></div>
+    <div class="slot" id="slot-human"></div>
+  </section>
+  <section class="hand hand-human" id="hand-human"></section>
+
+  <footer class="actions" id="actions"></footer>
+  <div class="log" id="log"></div>
+</div>
+
+<div class="overlay" id="overlay" hidden>
+  <div class="overlay-card">
+    <h1 id="overlay-title"></h1>
+    <p id="overlay-text"></p>
+    <button id="overlay-btn"></button>
+  </div>
+</div>
+
+<script type="module" src="src/main.js"></script>
+</body>
+</html>
