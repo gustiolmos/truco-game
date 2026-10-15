@@ -53,6 +53,7 @@ function startRoundUI() {
     c.style.animationDelay = `${i * 70}ms`;
     el.handCpu.appendChild(c);
   });
+  fan(el.handCpu, FAN_CPU);
   drawHumanHand();
   dealSounds();
   lastEnvido = null;
@@ -61,24 +62,28 @@ function startRoundUI() {
   if (game.turn === CPU) queueCpu();
 }
 
-// Abanico de la mano: cada carta se inclina según lo lejos que esté del
-// centro, y las de los costados suben un poco para que el borde superior
-// dibuje un arco. Se recalcula en cada reparto porque la mano se achica al
-// ir jugando, y un abanico de dos cartas no es el mismo que el de tres.
-const FAN_ANGLE = 7;     // grados entre carta y carta
-const FAN_LIFT = 7;      // cuánto sube cada carta por paso hasta el borde
+// Abanico: cada carta se inclina según lo lejos que esté del centro, y las
+// de los costados suben para que el borde superior dibuje un arco. Hay que
+// rehacerlo cada vez que cambia la cantidad de cartas, porque un abanico de
+// dos no es el mismo que el de tres: si no, queda descentrado al ir jugando.
+function fan(container, { angle, lift }) {
+  const cards = [...container.children];
+  const middle = (cards.length - 1) / 2;
+  cards.forEach((c, i) => {
+    const offset = i - middle;
+    c.style.setProperty('--rot', `${offset * angle}deg`);
+    c.style.setProperty('--lift', `${Math.abs(offset) * lift}px`);
+    c.style.zIndex = String(i + 1);   // la de la derecha tapa a la anterior
+  });
+}
+
+const FAN_HUMAN = { angle: 7, lift: 7 };
+const FAN_CPU = { angle: 4, lift: 3 };   // más cerrado: es decoración
 
 function drawHumanHand() {
   el.handHuman.innerHTML = '';
-  const hand = game.hands[HUMAN];
-  const middle = (hand.length - 1) / 2;
-
-  hand.forEach((card, i) => {
+  game.hands[HUMAN].forEach((card, i) => {
     const c = renderCard(card);
-    const offset = i - middle;
-    c.style.setProperty('--rot', `${offset * FAN_ANGLE}deg`);
-    c.style.setProperty('--lift', `${Math.abs(offset) * FAN_LIFT}px`);
-    c.style.zIndex = String(i + 1);   // la de la derecha tapa a la anterior
     c.style.animationDelay = `${i * 70}ms`;
     c.addEventListener('click', () => human({ type: 'play', cardId: card.id }));
     c.addEventListener('pointerenter', () => {
@@ -86,6 +91,7 @@ function drawHumanHand() {
     });
     el.handHuman.appendChild(c);
   });
+  fan(el.handHuman, FAN_HUMAN);
 }
 
 // El reparto acompaña a la animación de las cartas: una toma por carta,
@@ -212,7 +218,10 @@ function onEvent(e) {
       slot.innerHTML = '';
       slot.appendChild(node);
       if (e.player === HUMAN) drawHumanHand();
-      else el.handCpu.lastElementChild?.remove();
+      else {
+        el.handCpu.lastElementChild?.remove();
+        fan(el.handCpu, FAN_CPU);
+      }
       fx.burstAt(node, { count: 12, hue: 200, power: 4 });
       audio.play('play');
       break;
