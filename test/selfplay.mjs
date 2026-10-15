@@ -3,7 +3,7 @@
 // y que los puntos cierran contra el objetivo.
 
 import { TrucoGame } from '../src/core/game.js';
-import { envidoPoints } from '../src/core/envido.js';
+import { envidoPoints, envidoValues } from '../src/core/envido.js';
 import { makeCard } from '../src/core/deck.js';
 import { LOCALES, DEFAULT_LOCALE } from '../src/i18n/locales.js';
 
@@ -43,6 +43,38 @@ for (const [h, expected] of cases) {
 }
 
 console.log('envido: ok');
+
+// --- partida a 30 ---
+// El largo es configurable, así que todo lo que dependa del objetivo tiene
+// que seguirlo. El falta envido es el caso delicado: se cuenta contra lo
+// que le falta al líder para llegar, no contra un 15 fijo.
+{
+  for (const target of [15, 30]) {
+    const fresh = envidoValues(['falta-envido'], [0, 0], target);
+    if (fresh.accept !== target) {
+      throw new Error(`falta envido desde 0-0 a ${target} debería valer ${target}, vale ${fresh.accept}`);
+    }
+    const late = envidoValues(['falta-envido'], [target - 2, 5], target);
+    if (late.accept !== 2) {
+      throw new Error(`falta envido con el líder a 2 del final debería valer 2, vale ${late.accept}`);
+    }
+  }
+
+  let rounds = 0;
+  for (let n = 0; n < 200; n++) {
+    const g = new TrucoGame({ target: 30 });
+    let guard = 0;
+    while (g.winner === null && guard++ < 9000) {
+      if (g.roundOver) { g.nextRound(); rounds++; continue; }
+      const acts = g.legalActions(g.turn);
+      if (!acts.length) break;
+      g.act(g.turn, acts[Math.floor(rng() * acts.length)]);
+    }
+    if (g.winner === null) throw new Error('una partida a 30 no terminó');
+    if (g.scores[g.winner] < 30) throw new Error(`ganó con menos de 30: ${g.scores}`);
+  }
+  console.log(`partida a 30: ok (200 partidas, ${(rounds / 200).toFixed(1)} rondas de media)`);
+}
 
 // --- barras de vida ---
 // El HUD muestra vida, no puntos: tu vida es lo que le falta al rival para

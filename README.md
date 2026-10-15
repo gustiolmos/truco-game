@@ -39,6 +39,6 @@ menú de pausa, no sobre la mesa. Se abre con el botón del HUD o con Escape.
 
 Jerarquía completa, tres manos con pardas, envido / real envido / falta envido
 con cadena de recantos, truco / retruco / vale cuatro, puntos por "no quiero",
-mano alternada, partida a 15.
+mano alternada, y partida a 15 o a 30 a elección.
 
-Falta: flor, partidas a 30 con buenas y malas, 2v2, multijugador.
+Falta: flor, 2v2, multijugador.

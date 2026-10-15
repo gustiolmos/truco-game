@@ -13,7 +13,7 @@
   <header class="hud">
     <button class="menu-btn" id="menu-btn" type="button">☰</button>
 
-    <div class="vitals">
+    <div class="vitals" id="vitals">
       <div class="vital vital-left" id="vital-human">
         <div class="vital-tag">
           <span class="who" id="who-you">Vos</span>
@@ -73,6 +73,11 @@
     <h1 id="menu-title"></h1>
 
     <div class="setting">
+      <span class="setting-label" id="label-points"></span>
+      <div class="seg" id="target-menu"></div>
+    </div>
+
+    <div class="setting">
       <span class="setting-label" id="label-sound"></span>
       <button class="toggle" id="menu-sound" type="button" aria-pressed="true"></button>
     </div>
@@ -99,6 +104,7 @@
     <h1 id="overlay-title"></h1>
     <p id="overlay-text"></p>
     <button id="overlay-btn"></button>
+    <div class="seg" id="target-overlay"></div>
     <div class="langs" id="langs-overlay"></div>
   </div>
 </div>

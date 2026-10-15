@@ -17,7 +17,9 @@ export const LOCALES = {
     html: 'es-AR',
     t: {
       'game.title': 'Truco',
-      'game.subtitle': 'Primero a 15 puntos. Envido y truco incluidos.',
+      'game.subtitle': (target) => `Primero a ${target} puntos. Envido y truco incluidos.`,
+      'menu.points': 'Puntos de la partida',
+      'menu.pointsLocked': 'Se cambia entre partidas',
       'game.play': 'Jugar',
       'game.rematch': 'Revancha',
       'game.win': '¡Ganaste!',
@@ -88,7 +90,9 @@ export const LOCALES = {
     html: 'es-419',
     t: {
       'game.title': 'Truco',
-      'game.subtitle': 'El primero en llegar a 15 puntos. Con envido y truco.',
+      'game.subtitle': (target) => `El primero en llegar a ${target} puntos. Con envido y truco.`,
+      'menu.points': 'Puntos de la partida',
+      'menu.pointsLocked': 'Se cambia entre partidas',
       'game.play': 'Jugar',
       'game.rematch': 'Revancha',
       'game.win': '¡Ganaste!',
@@ -159,7 +163,9 @@ export const LOCALES = {
     html: 'en',
     t: {
       'game.title': 'Truco',
-      'game.subtitle': 'First to 15 points. Envido and truco included.',
+      'game.subtitle': (target) => `First to ${target} points. Envido and truco included.`,
+      'menu.points': 'Match length',
+      'menu.pointsLocked': 'Changes between matches',
       'game.play': 'Play',
       'game.rematch': 'Rematch',
       'game.win': 'You win!',

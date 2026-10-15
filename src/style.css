@@ -234,9 +234,24 @@ body::after {
   pointer-events: none;
   background: repeating-linear-gradient(
     to right,
-    transparent 0 calc(100% / 15 - 1px),
-    rgba(0, 0, 0, 0.45) calc(100% / 15 - 1px) calc(100% / 15)
+    transparent 0 calc(100% / var(--target, 15) - 1px),
+    rgba(0, 0, 0, 0.45) calc(100% / var(--target, 15) - 1px) calc(100% / var(--target, 15))
   );
+}
+
+/* En la partida larga, la mitad de la barra es la raya entre las malas y
+   las buenas. Cruzarla es un hito del truco y conviene verlo. */
+.vitals[data-target="30"] .vital-bar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 2px;
+  margin-left: -1px;
+  background: rgba(255, 255, 255, 0.55);
+  pointer-events: none;
+  z-index: 2;
 }
 
 /* Cuanto menos vida, más caliente el color. Una barra de progreso no cambia
@@ -639,6 +654,34 @@ body::after {
 @keyframes crack-draw {
   to { stroke-dashoffset: 0; }
 }
+
+/* Selector de dos o tres opciones excluyentes, en una sola pieza: se ve de
+   un vistazo cuál está elegida y cuáles son las otras. */
+.seg {
+  display: inline-flex;
+  border-radius: var(--r-sm);
+  background: var(--panel);
+  box-shadow: inset 0 0 0 1px var(--line);
+  overflow: hidden;
+}
+.seg button {
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--muted);
+  font-size: 0.92rem;
+  padding: calc(var(--px) * 2) calc(var(--px) * 5);
+}
+.seg button:hover { background: var(--panel-2); color: var(--ink); transform: none; }
+.seg button.is-on {
+  background: var(--green);
+  color: #06230f;
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.2);
+}
+.seg[aria-disabled='true'] { opacity: 0.45; }
+.seg[aria-disabled='true'] button { cursor: default; pointer-events: none; }
+
+#target-overlay { margin-top: calc(var(--px) * 4); }
 
 /* ---------- mazo ---------- */
 

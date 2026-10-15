@@ -20,7 +20,9 @@ const el = {
   deck: $('deck'), deckLabel: $('deck-label'),
   envido: $('envido'), envidoNum: $('envido-num'),
   whoRival: $('who-rival'), whoYou: $('who-you'), whoEnvido: $('who-envido'),
-  vitalHuman: $('vital-human'), vitalCpu: $('vital-cpu'),
+  vitalHuman: $('vital-human'), vitalCpu: $('vital-cpu'), vitals: $('vitals'),
+  targetMenu: $('target-menu'), targetOverlay: $('target-overlay'),
+  labelPoints: $('label-points'),
   langsOverlay: $('langs-overlay'), langsMenu: $('langs-menu'),
   menuBtn: $('menu-btn'), menu: $('menu'), menuTitle: $('menu-title'),
   menuSound: $('menu-sound'), menuVolume: $('menu-volume'),
@@ -36,13 +38,37 @@ let game;
 let busy = false;
 
 const TRICK_SLOT = [el.slotHuman, el.slotCpu];
-const TARGET = 15;
+
+// Largo de la partida. A 15 es la corta; a 30 es la larga de toda la vida,
+// la que se juega con buenas y malas.
+const TARGETS = [15, 30];
+const TARGET_KEY = 'truco.target';
+
+function readTarget() {
+  try {
+    const saved = Number(localStorage.getItem(TARGET_KEY));
+    if (TARGETS.includes(saved)) return saved;
+  } catch { /* modo privado */ }
+  return 15;
+}
+
+let target = readTarget();
+
+function setTarget(value) {
+  if (!TARGETS.includes(value) || value === target) return;
+  target = value;
+  try { localStorage.setItem(TARGET_KEY, String(value)); } catch { /* modo privado */ }
+  resetVitals();
+  paintTargetPickers();
+  paintOverlay();      // el subtítulo dice a cuántos puntos se juega
+}
 
 function newGame() {
-  game = new TrucoGame({ target: TARGET });
+  game = new TrucoGame({ target });
   game.on(onEvent);
   el.overlay.hidden = true;
   paintVitals();
+  paintTargetPickers();
   startRoundUI();
 }
 
@@ -56,6 +82,14 @@ const lifeOf = (player) => game.target - game.scores[other(player)];
 const vitalOf = (player) => (player === HUMAN ? el.vitalHuman : el.vitalCpu);
 const numOf = (player) => (player === HUMAN ? el.numHuman : el.numCpu);
 
+// Las muescas son una por punto, así que dependen del largo. El atributo
+// aparte es para la raya de la mitad: depender de cómo el navegador
+// serializa el estilo en línea sería frágil.
+function setVitalsTarget(value) {
+  el.vitals.style.setProperty('--target', String(value));
+  el.vitals.dataset.target = String(value);
+}
+
 // Barras llenas, sin partida en curso.
 function resetVitals() {
   for (const root of [el.vitalHuman, el.vitalCpu]) {
@@ -63,12 +97,14 @@ function resetVitals() {
     root.querySelector('.vital-chip').style.transform = 'scaleX(1)';
     root.classList.remove('is-mid', 'is-low', 'hit');
   }
-  el.numHuman.textContent = String(TARGET);
-  el.numCpu.textContent = String(TARGET);
+  el.numHuman.textContent = String(target);
+  el.numCpu.textContent = String(target);
+  setVitalsTarget(target);
 }
 
 function paintVitals() {
   if (!game) return;
+  setVitalsTarget(game.target);
   for (const player of [HUMAN, CPU]) {
     const life = Math.max(0, lifeOf(player));
     const ratio = life / game.target;
@@ -466,6 +502,36 @@ function paintOverlay() {
   el.oBtn.textContent = resolve(overlayKeys.btn);
 }
 
+// ---- largo de la partida ----------------------------------------------
+
+function buildTargetPicker(container) {
+  container.innerHTML = '';
+  for (const value of TARGETS) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = String(value);
+    b.addEventListener('click', () => { audio.play('click'); setTarget(value); });
+    container.appendChild(b);
+  }
+}
+
+function paintTargetPickers() {
+  // Con una partida en curso no se puede cambiar: hacerlo a mitad de
+  // camino movería la meta y las barras de vida ya empezadas.
+  const locked = Boolean(game);
+  el.labelPoints.textContent = locked ? t('menu.pointsLocked') : t('menu.points');
+  for (const container of [el.targetMenu, el.targetOverlay]) {
+    container.setAttribute('aria-label', t('menu.points'));
+    container.setAttribute('aria-disabled', String(locked));
+    for (const [i, value] of TARGETS.entries()) {
+      const b = container.children[i];
+      if (!b) continue;
+      b.classList.toggle('is-on', value === target);
+      b.setAttribute('aria-pressed', String(value === target));
+    }
+  }
+}
+
 // ---- idioma -----------------------------------------------------------
 
 function buildLangPicker(container) {
@@ -501,6 +567,7 @@ function paintAll() {
   paintOverlay();
   paintMenu();
   paintDeck();
+  paintTargetPickers();
   for (const c of [el.langsOverlay, el.langsMenu]) paintLangPicker(c);
   if (game) render();
 }
@@ -600,8 +667,9 @@ function quitMatch() {
   el.deck.disabled = true;
   deckArmed = false;
   resetVitals();
+  paintTargetPickers();   // sin partida vuelve a poder elegirse el largo
   say('');
-  showOverlay('game.title', ['game.subtitle'], 'game.play', newGame);
+  showOverlay('game.title', ['game.subtitle', target], 'game.play', newGame);
 }
 
 window.addEventListener('keydown', (e) => {
@@ -611,8 +679,10 @@ window.addEventListener('keydown', (e) => {
 });
 
 el.deck.disabled = true;
+for (const c of [el.targetMenu, el.targetOverlay]) buildTargetPicker(c);
 for (const c of [el.langsOverlay, el.langsMenu]) buildLangPicker(c);
+resetVitals();
 paintAll();
 
 armAudio();
-showOverlay('game.title', ['game.subtitle'], 'game.play', newGame);
+showOverlay('game.title', ['game.subtitle', target], 'game.play', newGame);
