@@ -20,7 +20,7 @@ más adelante, correr el mismo motor en un servidor para multijugador.
 | --- | --- |
 | `src/core/deck.js` | 40 cartas y jerarquía del truco |
 | `src/core/envido.js` | puntos de envido y valores de la cadena de cantos |
-| `src/core/game.js` | máquina de estados de la ronda y el puntaje |
+| `src/core/game.js` | máquina de estados de la ronda, el puntaje y el mazo |
 | `src/core/ai.js` | rival heurístico (fuerza de mano + ruido para mentir) |
 | `src/ui/pixel.js` | renderer de sprites: grilla de caracteres → SVG pixelado |
 | `src/ui/sprites.js` | palos (24x24) y figuras (32x44), dibujados a mano |

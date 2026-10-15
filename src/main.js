@@ -17,6 +17,7 @@ const el = {
   slotHuman: $('slot-human'), slotCpu: $('slot-cpu'),
   numHuman: $('num-human'), numCpu: $('num-cpu'),
   pot: $('pot'), tricks: $('tricks'), table: $('table'),
+  deck: $('deck'), deckLabel: $('deck-label'),
   envido: $('envido'), envidoNum: $('envido-num'),
   whoRival: $('who-rival'), whoYou: $('who-you'), whoEnvido: $('who-envido'),
   langsOverlay: $('langs-overlay'), langsMenu: $('langs-menu'),
@@ -158,6 +159,7 @@ function render() {
     node.classList.toggle('disabled', !playable.has(node.dataset.cardId));
   }
   renderActions(legal);
+  renderDeck(legal);
 }
 
 // El envido no cambia durante la ronda (se cuenta sobre las tres cartas
@@ -178,6 +180,39 @@ function renderEnvido() {
   }
   el.envido.classList.toggle('spent', !live);
 }
+
+// Irse al mazo pide dos clics: el primero arma y pone el mazo en rojo, el
+// segundo entrega la ronda. Un clic suelto en una esquina no debería
+// costarte la mano.
+let deckArmed = false;
+
+function disarmDeck() {
+  if (!deckArmed) return;
+  deckArmed = false;
+  paintDeck();
+}
+
+function paintDeck() {
+  el.deck.classList.toggle('armed', deckArmed);
+  el.deckLabel.textContent = deckArmed ? t('deck.confirm') : t('deck.fold');
+  el.deck.setAttribute('aria-label', t('deck.fold'));
+}
+
+function renderDeck(legal) {
+  const canFold = legal.some((a) => a.type === 'fold');
+  el.deck.disabled = !canFold;
+  if (!canFold) deckArmed = false;
+  paintDeck();
+}
+
+el.deck.addEventListener('click', () => {
+  audio.play('click');
+  if (!deckArmed) { deckArmed = true; paintDeck(); return; }
+  deckArmed = false;
+  human({ type: 'fold' });
+});
+// Si te arrepentís, alcanza con correr el puntero.
+el.deck.addEventListener('pointerleave', disarmDeck);
 
 function renderActions(legal) {
   el.actions.innerHTML = '';
@@ -257,6 +292,11 @@ function onEvent(e) {
       say(e.player === HUMAN ? t('log.youCall', label) : t('log.rivalCalls', label));
       break;
     }
+    case 'fold':
+      fx.bubble(t('bubble.fold'), { ...mouth(e.player), tone: 'bad' });
+      audio.play('reject');
+      say(e.player === HUMAN ? t('log.youFold') : t('log.rivalFolds'));
+      break;
     case 'truco-accepted':
       say(t('log.accepted'));
       fx.bubble(t('action.accept'), { ...mouth(e.player), tone: 'good' });
@@ -405,6 +445,7 @@ function paintAll() {
   el.envido.title = t('hud.envidoTip');
   paintOverlay();
   paintMenu();
+  paintDeck();
   for (const c of [el.langsOverlay, el.langsMenu]) paintLangPicker(c);
   if (game) render();
 }
@@ -501,6 +542,8 @@ function quitMatch() {
   el.handHuman.innerHTML = '';
   el.actions.innerHTML = '';
   el.tricks.innerHTML = '';
+  el.deck.disabled = true;
+  deckArmed = false;
   say('');
   el.numHuman.textContent = '0';
   el.numCpu.textContent = '0';
@@ -513,6 +556,7 @@ window.addEventListener('keydown', (e) => {
   else if (el.overlay.hidden) openMenu();
 });
 
+el.deck.disabled = true;
 for (const c of [el.langsOverlay, el.langsMenu]) buildLangPicker(c);
 paintAll();
 

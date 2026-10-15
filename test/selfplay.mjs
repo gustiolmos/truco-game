@@ -44,6 +44,41 @@ for (const [h, expected] of cases) {
 
 console.log('envido: ok');
 
+// --- irse al mazo ---
+// Entregar la ronda le da al otro lo que hubiera en juego en ese momento,
+// ni más ni menos. Si esto se desfasa, el jugador paga de más por rendirse.
+{
+  // Sin cantos: vale 1.
+  const plain = new TrucoGame({ target: 30 });
+  const p = plain.turn;
+  plain.act(p, { type: 'fold' });
+  if (plain.scores[1 - p] !== 1 || plain.scores[p] !== 0) {
+    throw new Error(`mazo sin cantos: ${plain.scores}, esperaba 1 para el otro`);
+  }
+
+  // Con truco querido: vale 2.
+  const withTruco = new TrucoGame({ target: 30 });
+  const caller = withTruco.turn;
+  withTruco.act(caller, { type: 'truco' });
+  withTruco.act(1 - caller, { type: 'accept' });
+  const folder = withTruco.turn;
+  const stake = withTruco.roundValue();
+  withTruco.act(folder, { type: 'fold' });
+  if (stake !== 2) throw new Error(`el truco querido debería valer 2, vale ${stake}`);
+  if (withTruco.scores[1 - folder] !== stake) {
+    throw new Error(`mazo con truco: ${withTruco.scores}, esperaba ${stake} para el otro`);
+  }
+
+  // Con un canto en el aire no se puede ir al mazo: ahí se dice no quiero.
+  const pending = new TrucoGame({ target: 30 });
+  pending.act(pending.turn, { type: 'truco' });
+  if (pending.legalActions(pending.turn).some((a) => a.type === 'fold')) {
+    throw new Error('no debería poder irse al mazo con un canto pendiente');
+  }
+
+  console.log('irse al mazo: ok');
+}
+
 // --- orden del canto del envido ---
 // La UI hace que el mano cante primero y el otro responda "N son mejores"
 // o "son buenas". Eso tiene que coincidir siempre con quién gana según el

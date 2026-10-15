@@ -34,6 +34,11 @@ export const LOCALES = {
 
       'action.accept': 'Quiero',
       'action.reject': 'No quiero',
+      'deck.fold': 'Irse al mazo',
+      'deck.confirm': '¿Seguro?',
+      'bubble.fold': 'Me voy al mazo',
+      'log.youFold': 'Te fuiste al mazo.',
+      'log.rivalFolds': 'El rival se fue al mazo.',
 
       'log.youAreMano': 'Sos mano.',
       'log.rivalIsMano': 'Es mano el rival.',
@@ -100,6 +105,11 @@ export const LOCALES = {
 
       'action.accept': 'Quiero',
       'action.reject': 'No quiero',
+      'deck.fold': 'Irse al mazo',
+      'deck.confirm': '¿Seguro?',
+      'bubble.fold': 'Me voy al mazo',
+      'log.youFold': 'Te fuiste al mazo.',
+      'log.rivalFolds': 'El rival se fue al mazo.',
 
       'log.youAreMano': 'Eres mano.',
       'log.rivalIsMano': 'El rival es mano.',
@@ -168,6 +178,11 @@ export const LOCALES = {
       // no hay nombre propio equivalente, así que acá sí se traduce.
       'action.accept': 'Accept',
       'action.reject': 'Decline',
+      'deck.fold': 'Fold',
+      'deck.confirm': 'Sure?',
+      'bubble.fold': "I'm out",
+      'log.youFold': 'You folded.',
+      'log.rivalFolds': 'Your rival folded.',
 
       'log.youAreMano': 'You lead this hand.',
       'log.rivalIsMano': 'Your rival leads this hand.',

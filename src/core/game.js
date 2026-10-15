@@ -68,6 +68,9 @@ export class TrucoGame {
       ? true
       : this.trucoAccepted && this.trucoCaller !== player && this.trucoLevel < 3;
     if (canTruco) out.push({ type: 'truco' });
+    // Irse al mazo: entregar la ronda. Con un canto en el aire no aplica,
+    // porque ahí lo que corresponde es no querer.
+    out.push({ type: 'fold' });
     return out;
   }
 
@@ -86,8 +89,17 @@ export class TrucoGame {
       case 'truco': return this.callTruco(player);
       case 'accept': return this.accept(player);
       case 'reject': return this.reject(player);
+      case 'fold': return this.fold(player);
       default: return false;
     }
+  }
+
+  // Irse al mazo: el otro se lleva lo que haya en juego en ese momento.
+  // Lo del envido, si se jugó, ya se cobró aparte.
+  fold(player) {
+    this.emit('fold', { player });
+    this.endRound(1 - player);
+    return true;
   }
 
   playCard(player, cardId) {

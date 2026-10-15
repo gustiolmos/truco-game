@@ -541,6 +541,76 @@ body::after {
   to { stroke-dashoffset: 0; }
 }
 
+/* ---------- mazo ---------- */
+
+/* El mazo vive abajo a la derecha, fuera del camino. Clickearlo es irse al
+   mazo: entregar la ronda. Al pasar por encima dice qué hace, porque un
+   montoncito de cartas no se explica solo. */
+.deck {
+  position: absolute;
+  right: clamp(8px, 2.5vw, 32px);
+  bottom: calc(var(--px) * 22);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(var(--px) * 2);
+  padding: 0;
+  background: none;
+  box-shadow: none;
+  z-index: 18;
+}
+.deck:hover { background: none; transform: none; }
+.deck[disabled] { opacity: 0.35; cursor: default; pointer-events: none; }
+
+/* Tres dorsos apilados y corridos: el bulto hace que se lea como un mazo
+   y no como una carta suelta. */
+.deck-pile {
+  position: relative;
+  display: block;
+  width: calc(var(--card-w) * 0.52);
+  height: calc(var(--card-w) * 0.52 * 1.55);
+}
+.deck-pile i {
+  position: absolute;
+  inset: 0;
+  border-radius: calc(var(--r) - 4px);
+  background:
+    repeating-conic-gradient(from 0deg at 50% 50%,
+      #2b5f8a 0% 25%, #1d4463 0% 50%)
+      0 0 / 8px 8px;
+  box-shadow:
+    inset 0 0 0 3px var(--ink-dark),
+    inset 0 0 0 5px #4d88c0,
+    0 3px 6px rgba(0, 0, 0, 0.45);
+  transition: transform 0.16s ease-out;
+}
+.deck-pile i:nth-child(1) { transform: translate(-4px, 4px) rotate(-4deg); }
+.deck-pile i:nth-child(2) { transform: translate(-1px, 2px) rotate(-1.5deg); }
+.deck:hover .deck-pile i:nth-child(1) { transform: translate(-7px, 2px) rotate(-8deg); }
+.deck:hover .deck-pile i:nth-child(2) { transform: translate(-3px, 1px) rotate(-3deg); }
+.deck:hover .deck-pile i:nth-child(3) { transform: translateY(-3px); }
+
+/* El rótulo aparece al pasar por encima, y se queda si está por confirmar. */
+.deck-label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--ink);
+  background: rgba(0, 0, 0, 0.55);
+  padding: calc(var(--px)) calc(var(--px) * 2);
+  border-radius: var(--r-sm);
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity 0.14s ease, transform 0.14s ease;
+}
+.deck:hover .deck-label,
+.deck:focus-visible .deck-label,
+.deck.armed .deck-label { opacity: 1; transform: translateY(0); }
+
+/* Armado: el mazo se tiñe de rojo para que el segundo clic no sea a ciegas. */
+.deck.armed .deck-pile i { box-shadow: inset 0 0 0 3px var(--ink-dark), inset 0 0 0 5px var(--red), 0 3px 6px rgba(0, 0, 0, 0.45); }
+.deck.armed .deck-label { background: var(--red); color: #fff2f4; }
+
 /* ---------- acciones ---------- */
 .actions {
   display: flex;
