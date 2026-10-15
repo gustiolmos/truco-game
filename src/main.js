@@ -28,7 +28,7 @@ const el = {
   labelPoints: $('label-points'),
   screenTitle: $('screen-title'), screenModes: $('screen-modes'), screenLength: $('screen-length'),
   modes: $('modes'), modesTitle: $('modes-title'), modesBack: $('modes-back'),
-  lengthTitle: $('length-title'), lengthText: $('length-text'),
+  lengthTitle: $('length-title'),
   lengthStart: $('length-start'), lengthBack: $('length-back'),
   langsOverlay: $('langs-overlay'), langsMenu: $('langs-menu'),
   menuBtn: $('menu-btn'), menu: $('menu'), menuTitle: $('menu-title'),
@@ -588,7 +588,6 @@ function paintScreens() {
     soon.textContent = card.classList.contains('is-soon') ? t('modes.soon') : '';
   }
   el.lengthTitle.textContent = t('length.title');
-  el.lengthText.textContent = t('length.text');
   el.lengthStart.textContent = t('length.start');
   el.lengthBack.textContent = t('common.back');
 }
@@ -599,13 +598,24 @@ el.lengthStart.addEventListener('click', () => { audio.play('click'); newGame();
 
 // ---- largo de la partida ----------------------------------------------
 
+// El mismo selector en dos presentaciones: fichas grandes cuando elegir el
+// largo es la tarea de la pantalla, y un control compacto cuando es una
+// opción más dentro del menú.
 function buildTargetPicker(container) {
+  const cards = container.dataset.variant === 'cards';
   container.innerHTML = '';
   for (const value of TARGETS) {
     const b = document.createElement('button');
     b.type = 'button';
-    b.textContent = String(value);
+    b.dataset.value = String(value);
+    if (cards) {
+      b.className = 'length-opt';
+      b.innerHTML = '<span class="length-num"></span>'
+        + '<span class="length-name"></span>'
+        + '<span class="length-desc"></span>';
+    }
     b.addEventListener('click', () => { audio.play('click'); setTarget(value); });
+    if (cards) b.addEventListener('pointerenter', () => audio.play('hover'));
     container.appendChild(b);
   }
 }
@@ -618,11 +628,19 @@ function paintTargetPickers() {
   for (const container of [el.targetMenu, el.targetOverlay]) {
     container.setAttribute('aria-label', t('menu.points'));
     container.setAttribute('aria-disabled', String(locked));
+    const cards = container.dataset.variant === 'cards';
     for (const [i, value] of TARGETS.entries()) {
       const b = container.children[i];
       if (!b) continue;
       b.classList.toggle('is-on', value === target);
       b.setAttribute('aria-pressed', String(value === target));
+      if (cards) {
+        b.querySelector('.length-num').textContent = String(value);
+        b.querySelector('.length-name').textContent = t(`length.${value}`);
+        b.querySelector('.length-desc').textContent = t(`length.${value}Desc`);
+      } else {
+        b.textContent = String(value);
+      }
     }
   }
 }

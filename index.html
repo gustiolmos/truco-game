@@ -74,7 +74,7 @@
 
     <div class="setting">
       <span class="setting-label" id="label-points"></span>
-      <div class="seg" id="target-menu"></div>
+      <div class="seg" id="target-menu" data-variant="seg"></div>
     </div>
 
     <div class="setting">
@@ -116,11 +116,10 @@
   </div>
 
   <!-- largo de la partida, para los modos que lo permiten -->
-  <div class="overlay-card" id="screen-length" hidden>
+  <div class="overlay-card length-card" id="screen-length" hidden>
     <h1 id="length-title"></h1>
-    <p id="length-text"></p>
-    <div class="seg" id="target-overlay"></div>
-    <button class="good" id="length-start" type="button"></button>
+    <div class="lengths" id="target-overlay" data-variant="cards"></div>
+    <button class="good start" id="length-start" type="button"></button>
     <button class="ghost" id="length-back" type="button"></button>
   </div>
 </div>
