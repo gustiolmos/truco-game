@@ -9,6 +9,7 @@ import { Fx, countUp } from './ui/fx.js';
 import { audio, armAudio } from './ui/audio.js';
 import { t, callLabel, locales, getLocale, setLocale, onLocaleChange } from './i18n/index.js';
 import { flagSprite } from './ui/flags.js';
+import { MODES } from './modes.js';
 
 const $ = (id) => document.getElementById(id);
 const el = {
@@ -23,6 +24,10 @@ const el = {
   vitalHuman: $('vital-human'), vitalCpu: $('vital-cpu'), vitals: $('vitals'),
   targetMenu: $('target-menu'), targetOverlay: $('target-overlay'),
   labelPoints: $('label-points'),
+  screenTitle: $('screen-title'), screenModes: $('screen-modes'), screenLength: $('screen-length'),
+  modes: $('modes'), modesTitle: $('modes-title'), modesBack: $('modes-back'),
+  lengthTitle: $('length-title'), lengthText: $('length-text'),
+  lengthStart: $('length-start'), lengthBack: $('length-back'),
   langsOverlay: $('langs-overlay'), langsMenu: $('langs-menu'),
   menuBtn: $('menu-btn'), menu: $('menu'), menuTitle: $('menu-title'),
   menuSound: $('menu-sound'), menuVolume: $('menu-volume'),
@@ -483,7 +488,7 @@ function showOverlay(title, text, btn, onClick) {
   overlayKeys = { title, text, btn };
   paintOverlay();
   el.oBtn.onclick = () => { audio.play('click'); onClick(); };
-  el.overlay.hidden = false;
+  showScreen('title');
   if (title === 'game.win') {
     for (let i = 0; i < 6; i++) {
       setTimeout(() => fx.burst(Math.random() * innerWidth, innerHeight * 0.6,
@@ -501,6 +506,71 @@ function paintOverlay() {
   el.oText.textContent = resolve(overlayKeys.text);
   el.oBtn.textContent = resolve(overlayKeys.btn);
 }
+
+// ---- pantallas del cartel ---------------------------------------------
+
+// El cartel que tapa la mesa tiene tres caras: la portada (que también hace
+// de fin de partida), la elección de modo y la del largo. Una sola a la vez.
+const SCREENS = {
+  title: () => el.screenTitle,
+  modes: () => el.screenModes,
+  length: () => el.screenLength,
+};
+
+let screen = 'title';
+
+function showScreen(name) {
+  screen = name;
+  for (const [key, get] of Object.entries(SCREENS)) get().hidden = key !== name;
+  el.overlay.hidden = false;
+  paintScreens();
+}
+
+// Qué hace cada modo jugable. Los de 'soon' no necesitan entrada.
+const MODE_PICK = {
+  classic: () => showScreen('length'),
+};
+
+function buildModes() {
+  el.modes.innerHTML = '';
+  for (const mode of MODES) {
+    const card = document.createElement('button');
+    card.type = 'button';
+    card.className = `mode mode-${mode.size ?? 'small'}${mode.soon ? ' is-soon' : ''}`;
+    card.dataset.mode = mode.id;
+    card.innerHTML = `
+      <span class="mode-name"></span>
+      <span class="mode-desc"></span>
+      <span class="mode-soon"></span>`;
+    if (mode.soon) {
+      card.disabled = true;
+    } else {
+      card.addEventListener('click', () => { audio.play('click'); MODE_PICK[mode.id](); });
+      card.addEventListener('pointerenter', () => audio.play('hover'));
+    }
+    el.modes.appendChild(card);
+  }
+}
+
+function paintScreens() {
+  el.modesTitle.textContent = t('modes.title');
+  el.modesBack.textContent = t('common.back');
+  for (const card of el.modes.children) {
+    const id = card.dataset.mode;
+    card.querySelector('.mode-name').textContent = t(`modes.${id}`);
+    card.querySelector('.mode-desc').textContent = t(`modes.${id}Desc`);
+    const soon = card.querySelector('.mode-soon');
+    soon.textContent = card.classList.contains('is-soon') ? t('modes.soon') : '';
+  }
+  el.lengthTitle.textContent = t('length.title');
+  el.lengthText.textContent = t('length.text');
+  el.lengthStart.textContent = t('length.start');
+  el.lengthBack.textContent = t('common.back');
+}
+
+el.modesBack.addEventListener('click', () => { audio.play('click'); showScreen('title'); });
+el.lengthBack.addEventListener('click', () => { audio.play('click'); showScreen('modes'); });
+el.lengthStart.addEventListener('click', () => { audio.play('click'); newGame(); });
 
 // ---- largo de la partida ----------------------------------------------
 
@@ -565,6 +635,7 @@ function paintAll() {
   el.whoEnvido.textContent = t('hud.envido');
   el.envido.title = t('hud.envidoTip');
   paintOverlay();
+  paintScreens();
   paintMenu();
   paintDeck();
   paintTargetPickers();
@@ -669,7 +740,7 @@ function quitMatch() {
   resetVitals();
   paintTargetPickers();   // sin partida vuelve a poder elegirse el largo
   say('');
-  showOverlay('game.title', ['game.subtitle', target], 'game.play', newGame);
+  showOverlay('game.title', ['game.subtitle'], 'game.play', () => showScreen('modes'));
 }
 
 window.addEventListener('keydown', (e) => {
@@ -679,10 +750,11 @@ window.addEventListener('keydown', (e) => {
 });
 
 el.deck.disabled = true;
+buildModes();
 for (const c of [el.targetMenu, el.targetOverlay]) buildTargetPicker(c);
 for (const c of [el.langsOverlay, el.langsMenu]) buildLangPicker(c);
 resetVitals();
 paintAll();
 
 armAudio();
-showOverlay('game.title', ['game.subtitle', target], 'game.play', newGame);
+showOverlay('game.title', ['game.subtitle'], 'game.play', () => showScreen('modes'));

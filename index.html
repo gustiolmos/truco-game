@@ -100,12 +100,28 @@
 </div>
 
 <div class="overlay" id="overlay" hidden>
-  <div class="overlay-card">
+  <!-- portada, y también el cartel de fin de partida -->
+  <div class="overlay-card" id="screen-title">
     <h1 id="overlay-title"></h1>
     <p id="overlay-text"></p>
     <button id="overlay-btn"></button>
-    <div class="seg" id="target-overlay"></div>
     <div class="langs" id="langs-overlay"></div>
+  </div>
+
+  <!-- elección de modo -->
+  <div class="overlay-card modes-card" id="screen-modes" hidden>
+    <h1 id="modes-title"></h1>
+    <div class="modes" id="modes"></div>
+    <button class="ghost" id="modes-back" type="button"></button>
+  </div>
+
+  <!-- largo de la partida, para los modos que lo permiten -->
+  <div class="overlay-card" id="screen-length" hidden>
+    <h1 id="length-title"></h1>
+    <p id="length-text"></p>
+    <div class="seg" id="target-overlay"></div>
+    <button class="good" id="length-start" type="button"></button>
+    <button class="ghost" id="length-back" type="button"></button>
   </div>
 </div>
 

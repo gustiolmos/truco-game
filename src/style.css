@@ -655,6 +655,103 @@ body::after {
   to { stroke-dashoffset: 0; }
 }
 
+/* ---------- elección de modo ---------- */
+
+/* Una sola cara del cartel a la vez. */
+.overlay-card[hidden] { display: none; }
+
+.modes-card { min-width: min(660px, 93vw); }
+
+/* Tres columnas: Historia ocupa el ancho entero arriba, los tres que no
+   existen todavía van chicos en el medio, y lo único jugable cierra abajo
+   también a lo ancho. El tamaño dice qué importa antes de leer nada. */
+.modes {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: calc(var(--px) * 2);
+  margin: calc(var(--px) * 5) 0 calc(var(--px) * 4);
+}
+.mode {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: calc(var(--px) * 0.75);
+  text-align: left;
+  padding: calc(var(--px) * 3);
+  min-height: calc(var(--px) * 19);
+  border-radius: var(--r);
+  background: var(--panel);
+  box-shadow: inset 0 0 0 1px var(--line);
+  color: var(--ink);
+  letter-spacing: 0;
+}
+.mode-big {
+  grid-column: 1 / -1;
+  min-height: calc(var(--px) * 32);
+  background:
+    radial-gradient(120% 90% at 20% 0%, rgba(255, 194, 51, 0.16), transparent 60%),
+    var(--panel);
+}
+.mode-wide { grid-column: 1 / -1; min-height: calc(var(--px) * 16); }
+
+.mode-name { font-size: 1rem; font-weight: 800; }
+.mode-big .mode-name { font-size: 1.9rem; }
+.mode-wide .mode-name { font-size: 1.3rem; }
+.mode-desc {
+  font-size: 0.78rem;
+  font-weight: 400;
+  color: var(--muted);
+  line-height: 1.3;
+  white-space: normal;
+}
+.mode-big .mode-desc { font-size: 0.92rem; }
+
+/* La etiqueta de "próximamente" va arriba a la derecha, no en el nombre:
+   así el modo se lee igual y el estado se lee aparte. */
+.mode-soon:not(:empty) {
+  position: absolute;
+  top: calc(var(--px) * 2);
+  right: calc(var(--px) * 2);
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gold);
+  background: rgba(0, 0, 0, 0.35);
+  padding: 2px calc(var(--px) * 1.5);
+  border-radius: 999px;
+}
+.mode { position: relative; }
+
+.mode.is-soon { opacity: 0.5; cursor: default; }
+.mode.is-soon:hover { transform: none; background: var(--panel); }
+
+/* Lo jugable se distingue por el borde, no por el color de fondo: no tiene
+   que gritar más que Historia, sólo verse disponible. */
+.mode:not(.is-soon) { box-shadow: inset 0 0 0 2px var(--green); }
+.mode:not(.is-soon):hover {
+  background: var(--panel-2);
+  transform: translateY(calc(var(--px) * -0.5));
+}
+
+/* Botón secundario: para volver, que nunca tiene que competir con la
+   acción principal de la pantalla. */
+.ghost {
+  display: block;
+  margin: calc(var(--px) * 3) auto 0;
+  background: transparent;
+  box-shadow: none;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+.ghost:hover { background: rgba(255, 255, 255, 0.08); color: var(--ink); }
+
+@media (max-width: 560px) {
+  .modes { grid-template-columns: 1fr 1fr; }
+  .mode-big, .mode-wide { grid-column: 1 / -1; }
+}
+
 /* Selector de dos o tres opciones excluyentes, en una sola pieza: se ve de
    un vistazo cuál está elegida y cuáles son las otras. */
 .seg {

@@ -6,6 +6,7 @@ import { TrucoGame } from '../src/core/game.js';
 import { envidoPoints, envidoValues } from '../src/core/envido.js';
 import { makeCard } from '../src/core/deck.js';
 import { LOCALES, DEFAULT_LOCALE } from '../src/i18n/locales.js';
+import { MODES } from '../src/modes.js';
 
 let seed = 12345;
 const rng = () => (seed = (seed * 1664525 + 1013904223) % 4294967296) / 4294967296;
@@ -163,6 +164,25 @@ console.log('envido: ok');
     }
   }
   console.log(`envido hablado: ok (${checked} combinaciones)`);
+}
+
+// --- modos ---
+// Un modo sin traducción muestra la clave cruda en el panel de inicio, que
+// es la primera pantalla que ve cualquiera. Mejor que falle acá.
+{
+  for (const mode of MODES) {
+    for (const suffix of ['', 'Desc']) {
+      const key = `modes.${mode.id}${suffix}`;
+      for (const [id, locale] of Object.entries(LOCALES)) {
+        if (!locale.t[key]) throw new Error(`a "${id}" le falta "${key}"`);
+      }
+    }
+  }
+  const playable = MODES.filter((m) => !m.soon).map((m) => m.id);
+  if (!playable.includes('classic')) {
+    throw new Error('el truco clásico tiene que quedar jugable');
+  }
+  console.log(`modos: ok (${MODES.length} listados, ${playable.length} jugable)`);
 }
 
 // --- idiomas ---
