@@ -44,6 +44,29 @@ for (const [h, expected] of cases) {
 
 console.log('envido: ok');
 
+// --- orden del canto del envido ---
+// La UI hace que el mano cante primero y el otro responda "N son mejores"
+// o "son buenas". Eso tiene que coincidir siempre con quién gana según el
+// motor: si no, el diálogo diría una cosa y el puntaje otra.
+{
+  let checked = 0;
+  for (let mano = 0; mano <= 1; mano++) {
+    for (let a = 0; a <= 33; a++) {
+      for (let b = 0; b <= 33; b++) {
+        const pts = [a, b];
+        const winner = pts[0] === pts[1] ? mano : (pts[0] > pts[1] ? 0 : 1);
+        const responder = mano === 0 ? 1 : 0;
+        const supera = pts[responder] > pts[mano];   // lo que dirá el globo
+        if (supera !== (winner === responder)) {
+          throw new Error(`envido mano=${mano} ${pts}: el motor da ganador ${winner} pero el diálogo diría supera=${supera}`);
+        }
+        checked++;
+      }
+    }
+  }
+  console.log(`envido hablado: ok (${checked} combinaciones)`);
+}
+
 // --- idiomas ---
 // Una clave que falta en un idioma no rompe nada hasta que un jugador llega
 // a esa pantalla, así que conviene que falle acá.

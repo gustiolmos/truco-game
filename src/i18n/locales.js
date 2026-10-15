@@ -49,6 +49,7 @@ export const LOCALES = {
 
       'shout.reject': 'No quiero',
       'shout.envidoBetter': (points) => `${points} son mejores`,
+      'shout.envidoGood': 'Son buenas',
 
       'calls.truco': 'Truco',
       'calls.retruco': 'Retruco',
@@ -114,6 +115,7 @@ export const LOCALES = {
 
       'shout.reject': 'No quiero',
       'shout.envidoBetter': (points) => `${points} son mejores`,
+      'shout.envidoGood': 'Son buenas',
 
       'calls.truco': 'Truco',
       'calls.retruco': 'Retruco',
@@ -181,6 +183,7 @@ export const LOCALES = {
 
       'shout.reject': 'Declined',
       'shout.envidoBetter': (points) => `${points} is better`,
+      'shout.envidoGood': 'Yours are good',
 
       'calls.truco': 'Truco',
       'calls.retruco': 'Retruco',

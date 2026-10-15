@@ -270,15 +270,35 @@ function onEvent(e) {
     case 'envido-showdown': {
       const mine = e.points[HUMAN];
       const theirs = e.points[CPU];
-      // Primero el "quiero" de quien aceptó, y recién después el número
-      // ganador: encimados no se entiende quién dijo qué.
-      fx.bubble(t('action.accept'), { ...mouth(e.player), tone: 'good', hold: 900 });
+
+      // El canto del envido tiene un orden fijo en la mesa: el que acepta
+      // dice "quiero", después canta el mano sus puntos, y recién entonces
+      // responde el otro: lo supera si tiene más, o da las buenas si no.
+      // Hacerlo de a uno es lo que lo vuelve un diálogo y no un resultado.
+      const manoPlayer = game.mano;
+      const responder = other(manoPlayer);
+      const manoPoints = e.points[manoPlayer];
+      const responderPoints = e.points[responder];
+
+      fx.bubble(t('action.accept'), { ...mouth(e.player), tone: 'good', hold: 520 });
       audio.play('accept');
+
       setTimeout(() => {
-        fx.bubble(t('shout.envidoBetter', e.winner === HUMAN ? mine : theirs),
-          { ...mouth(e.winner), tone: 'gold' });
+        fx.bubble(String(manoPoints), { ...mouth(manoPlayer), tone: 'envido', hold: 1600 });
+        audio.play('envido', { volume: 0.7 });
+      }, 560);
+
+      setTimeout(() => {
+        // Empatados gana el mano, así que el otro da las buenas: sólo
+        // supera quien tiene estrictamente más.
+        const supera = responderPoints > manoPoints;
+        fx.bubble(
+          supera ? t('shout.envidoBetter', responderPoints) : t('shout.envidoGood'),
+          { ...mouth(responder), tone: supera ? 'gold' : 'bad', hold: 1500 },
+        );
         audio.play(e.winner === HUMAN ? 'trickWin' : 'trickLose');
-      }, 520);
+      }, 1240);
+
       say(t('log.envidoScore', mine, theirs));
       break;
     }
