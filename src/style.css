@@ -650,16 +650,20 @@ button.good:hover { background: #52c565; }
 button.bad { background: #4a2c3c; color: #ffc6cf; }
 button.bad:hover { background: #5e374b; }
 
+/* El registro va con el resto del estado de la ronda, en el centro del HUD.
+   Antes vivía pegado abajo, entre la mano y los botones, y ahí no entra.
+   La altura fija evita que el HUD salte cada vez que el texto aparece. */
 .log {
-  position: absolute;
-  left: 50%;
-  bottom: calc(var(--px) * 18);
-  transform: translateX(-50%);
-  font-size: 1.05rem;
+  margin-top: calc(var(--px) * 1.5);
+  min-height: 1.4em;
+  /* La columna del centro del HUD se ajusta al contenido, así que sin tope
+     un mensaje largo ("No quiero el envido: 2 para vos.") empujaría los
+     marcadores hacia afuera. */
+  max-width: clamp(220px, 34vw, 460px);
+  font-size: 0.95rem;
   color: var(--muted);
   text-align: center;
   pointer-events: none;
-  max-width: 90%;
 }
 
 /* ---------- globos de diálogo ---------- */
@@ -808,5 +812,5 @@ button.bad:hover { background: #5e374b; }
   }
   .hud { gap: calc(var(--px) * 2); }
   button { font-size: 0.92rem; padding: calc(var(--px) * 3) calc(var(--px) * 5); }
-  .log { bottom: calc(var(--px) * 20); }
+  .log { font-size: 0.86rem; }
 }
