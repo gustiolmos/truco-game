@@ -27,7 +27,10 @@
   --green: #35d35f;
   --card-face: #fffaf0;
 
-  --card-w: clamp(100px, 15vw, 158px);
+  /* La carta mide 1,55 de alto por 1 de ancho, así que si sólo se atara al
+     ancho, en una ventana baja se comería la mesa. Manda el lado que
+     primero se queda corto. */
+  --card-w: clamp(84px, min(14vw, 17vh), 152px);
   /* Tipografía del sistema: sin descarga, y en cada equipo se ve nativa. */
   --font: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
 
@@ -89,7 +92,7 @@ body::before {
   display: flex;
   align-items: center;
   gap: calc(var(--px) * 2);
-  padding: calc(var(--px) * 2) calc(var(--px) * 3);
+  padding: calc(var(--px) * 2.5) calc(var(--px) * 4);
   width: fit-content;
   border-radius: var(--r);
   background: #2a1a5e;
@@ -109,13 +112,13 @@ body::before {
   display: flex;
   align-items: center;
   gap: calc(var(--px) * 2);
-  padding: calc(var(--px) * 2) calc(var(--px) * 3);
+  padding: calc(var(--px) * 2.5) calc(var(--px) * 4);
   border-radius: var(--r);
   background: #2a1a5e;
   box-shadow: inset 0 0 0 var(--px) var(--blue);
 }
 .envido-num {
-  font-size: 1.5rem;
+  font-size: 2.1rem;
   font-weight: 700;
   color: var(--blue);
   font-variant-numeric: tabular-nums;
@@ -128,14 +131,14 @@ body::before {
 .envido-num.pulse { animation: pop 0.3s steps(4, end); }
 
 .who {
-  font-size: 0.68rem;
+  font-size: 0.86rem;
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--muted);
 }
 .num {
-  font-size: 2rem;
+  font-size: 2.4rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
@@ -150,7 +153,7 @@ body::before {
 .round-info { text-align: center; }
 .pot {
   font-weight: 600;
-  font-size: 0.95rem;
+  font-size: 1.2rem;
   color: var(--gold);
   /* "Glow" pixelado: sombra dura desplazada, no un halo difuso. */
   text-shadow: var(--px) var(--px) 0 rgba(0, 0, 0, 0.5);
@@ -180,7 +183,7 @@ body::before {
    Los otros van apagados para que se note cuál está activo sin leer. */
 .langs { display: flex; gap: var(--px); }
 .lang {
-  padding: var(--px);
+  padding: calc(var(--px) * 1.25);
   border-radius: var(--r-sm);
   overflow: hidden;
   background: #2a1a5e;
@@ -196,7 +199,7 @@ body::before {
   box-shadow: inset 0 0 0 var(--px) var(--gold);
 }
 .lang .flag {
-  width: calc(var(--px) * 6);
+  width: calc(var(--px) * 8);
   height: auto;
   image-rendering: pixelated;
   shape-rendering: crispEdges;
@@ -207,14 +210,14 @@ body::before {
   justify-content: center;
   margin-top: calc(var(--px) * 6);
 }
-#langs-overlay .flag { width: calc(var(--px) * 9); }
+#langs-overlay .flag { width: calc(var(--px) * 12); }
 
 /* Silencio: discreto, pero siempre a la vista. Un juego que no se puede
    callar es un juego que se cierra. */
 .mute {
   margin-top: calc(var(--px) * 2);
-  font-size: 0.66rem;
-  padding: var(--px) calc(var(--px) * 2);
+  font-size: 0.85rem;
+  padding: calc(var(--px) * 2) calc(var(--px) * 4);
   background: #2a1a5e;
   color: var(--muted);
   box-shadow: inset 0 0 0 var(--px) var(--line);
@@ -305,7 +308,7 @@ body::before {
   color: var(--suit-dark);
 }
 .corner b {
-  font-size: clamp(16px, 2.6vw, 25px);
+  font-size: clamp(19px, 3.1vw, 31px);
   font-weight: 700;
 }
 .corner.tl { top: calc(var(--px) * 1.5); left: calc(var(--px) * 1.5); }
@@ -382,7 +385,7 @@ body::before {
   gap: calc(var(--px) * 2);
   justify-content: center;
   flex-wrap: wrap;
-  min-height: calc(var(--px) * 13);
+  min-height: calc(var(--px) * 16);
   align-items: center;
 }
 
@@ -391,9 +394,9 @@ body::before {
 button {
   font: inherit;
   font-weight: 700;
-  font-size: 0.84rem;
+  font-size: 1.05rem;
   letter-spacing: 0.02em;
-  padding: calc(var(--px) * 2.5) calc(var(--px) * 4);
+  padding: calc(var(--px) * 3.5) calc(var(--px) * 7);
   border: 0;
   border-radius: var(--r-sm);
   background: #4a349c;
@@ -420,7 +423,7 @@ button.bad:hover { background: #5e374b; }
   left: 50%;
   bottom: calc(var(--px) * 18);
   transform: translateX(-50%);
-  font-size: 0.88rem;
+  font-size: 1.05rem;
   color: var(--muted);
   text-align: center;
   pointer-events: none;
@@ -479,14 +482,18 @@ button.bad:hover { background: #5e374b; }
 }
 .overlay-card h1 {
   margin: 0 0 calc(var(--px) * 2);
-  font-size: clamp(1.4rem, 5vw, 2.6rem);
+  font-size: clamp(1.9rem, 6vw, 3.4rem);
   letter-spacing: -0.01em;
   text-shadow: var(--px) var(--px) 0 rgba(0, 0, 0, 0.5);
+}
+#overlay-btn {
+  font-size: 1.15rem;
+  padding: calc(var(--px) * 4) calc(var(--px) * 9);
 }
 .overlay-card p {
   margin: 0 0 calc(var(--px) * 6);
   color: var(--muted);
-  font-size: 0.86rem;
+  font-size: 1.1rem;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -496,11 +503,11 @@ button.bad:hover { background: #5e374b; }
 
 @media (max-width: 560px) {
   :root { --px: 3px; }
-  .num, .envido-num { font-size: 1.5rem; }
+  .num, .envido-num { font-size: 1.8rem; }
   /* En pantalla chica el rótulo "Envido" se come el ancho del marcador.
      El número solo, en azul y pegado al marcador, se entiende igual. */
   .envido .who { display: none; }
   .hud { gap: calc(var(--px) * 2); }
-  button { font-size: 0.78rem; padding: calc(var(--px) * 3) calc(var(--px) * 4); }
+  button { font-size: 0.92rem; padding: calc(var(--px) * 3) calc(var(--px) * 5); }
   .log { bottom: calc(var(--px) * 20); }
 }
