@@ -110,6 +110,38 @@ body::after {
   gap: calc(var(--px) * 2);
 }
 
+/* El estado de la ronda va entre las dos barras, donde en un juego de pelea
+   va el reloj. Ancho fijo a propósito: si creciera con el texto, las barras
+   se correrían cada vez que cambia el mensaje. */
+.round-info {
+  text-align: center;
+  width: clamp(170px, 21vw, 250px);
+}
+.pot {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--gold);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* Las tres manos de la ronda. */
+.tricks {
+  display: flex;
+  gap: var(--px);
+  justify-content: center;
+  margin-top: calc(var(--px) * 1.5);
+}
+.tricks i {
+  width: calc(var(--px) * 3);
+  height: calc(var(--px) * 3);
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.3);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+.tricks i.w { background: var(--green); box-shadow: 0 0 6px rgba(53, 211, 95, 0.8); }
+.tricks i.l { background: var(--red); box-shadow: 0 0 6px rgba(255, 59, 92, 0.7); }
+.tricks i.p { background: var(--muted); }
+
 /* ---------- barras de vida ---------- */
 
 /* No es una barra de progreso: arranca llena y se vacía. Cada uno tiene 15
@@ -117,10 +149,11 @@ body::after {
    centro, como en un juego de pelea, y el jugador va siempre a la
    izquierda para que no haya que pensar cuál es la propia. */
 .vitals {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
-  gap: calc(var(--px) * 3);
-  width: min(880px, 94vw);
+  gap: calc(var(--px) * 4);
+  width: min(1040px, 96vw);
 }
 .vital {
   flex: 1;
@@ -646,6 +679,11 @@ body::after {
 
 /* ---------- acciones ---------- */
 .actions {
+  /* Delante de la mano: las cartas del abanico se montan sobre esta fila
+     (y la de hover sube todavía más), así que sin esto los botones quedan
+     tapados justo cuando hay que apretarlos. */
+  position: relative;
+  z-index: 30;
   display: flex;
   gap: calc(var(--px) * 2);
   justify-content: center;
@@ -687,13 +725,13 @@ button.bad:hover { background: #5e374b; }
    Antes vivía pegado abajo, entre la mano y los botones, y ahí no entra.
    La altura fija evita que el HUD salte cada vez que el texto aparece. */
 .log {
-  margin-top: calc(var(--px) * 1.5);
-  min-height: 1.4em;
+  margin-top: calc(var(--px) * 1);
+  min-height: 2.5em;
   /* La columna del centro del HUD se ajusta al contenido, así que sin tope
      un mensaje largo ("No quiero el envido: 2 para vos.") empujaría los
      marcadores hacia afuera. */
-  max-width: clamp(220px, 34vw, 460px);
-  font-size: 0.95rem;
+  font-size: 0.82rem;
+  line-height: 1.25;
   color: var(--muted);
   text-align: center;
   pointer-events: none;
@@ -845,5 +883,8 @@ button.bad:hover { background: #5e374b; }
   }
   .hud { gap: calc(var(--px) * 2); }
   button { font-size: 0.92rem; padding: calc(var(--px) * 3) calc(var(--px) * 5); }
-  .log { font-size: 0.86rem; }
+  .log { font-size: 0.72rem; }
+  .round-info { width: clamp(110px, 28vw, 190px); }
+  .vitals { gap: calc(var(--px) * 2); }
+  .pot { font-size: 0.82rem; }
 }
