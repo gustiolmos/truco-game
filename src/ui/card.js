@@ -7,7 +7,7 @@ import { t } from '../i18n/index.js';
 
 // Tres tonos por palo. El sprite usa los tres, así la misma grilla sirve para
 // los cuatro palos y cada uno conserva su sombreado.
-const SUIT_COLORS = {
+export const SUIT_COLORS = {
   espada: ['#3aa0ff', '#1a5fc4', '#a8d8ff'],
   basto: ['#35d35f', '#13873a', '#9bf0ae'],
   oro: ['#ffc233', '#c47f0e', '#ffe79a'],

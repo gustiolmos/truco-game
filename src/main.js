@@ -4,7 +4,9 @@
 import { TrucoGame, TRUCO_CHAIN, HUMAN, CPU } from './core/game.js';
 import { chooseAction } from './core/ai.js';
 import { ENVIDO_CALLS } from './core/envido.js';
-import { renderCard, crack } from './ui/card.js';
+import { renderCard, crack, SUIT_COLORS } from './ui/card.js';
+import { sprite } from './ui/pixel.js';
+import { SUITS } from './ui/sprites.js';
 import { Fx, countUp } from './ui/fx.js';
 import { audio, armAudio } from './ui/audio.js';
 import { t, callLabel, locales, getLocale, setLocale, onLocaleChange } from './i18n/index.js';
@@ -531,6 +533,23 @@ const MODE_PICK = {
   classic: () => showScreen('length'),
 };
 
+// Cada ficha lleva su palo de fondo como arte. No hay ilustraciones, pero
+// los palos en pixelart ya son el lenguaje visual del juego, así que a
+// tamaño grande y recortados funcionan como una.
+// Un color con transparencia, a partir del hexadecimal del palo. Se hace
+// acá y no con color-mix en el CSS porque si color-mix no se entiende, se
+// cae la declaración entera del degradado y la ficha queda sin arte.
+function softColor(hex, alpha) {
+  const n = parseInt(hex.slice(1), 16);
+  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`;
+}
+
+function modeArt(suit) {
+  const [main, dark, light] = SUIT_COLORS[suit];
+  return `<span class="mode-art" style="--suit:${main};--suit-dark:${dark};--suit-light:${light}">${
+    sprite(`palo-${suit}`, SUITS[suit], 'art-suit')}</span>`;
+}
+
 function buildModes() {
   el.modes.innerHTML = '';
   for (const mode of MODES) {
@@ -538,9 +557,15 @@ function buildModes() {
     card.type = 'button';
     card.className = `mode mode-${mode.size ?? 'small'}${mode.soon ? ' is-soon' : ''}`;
     card.dataset.mode = mode.id;
+    const accent = SUIT_COLORS[mode.suit][0];
+    card.style.setProperty('--accent', accent);
+    card.style.setProperty('--accent-soft', softColor(accent, 0.26));
     card.innerHTML = `
-      <span class="mode-name"></span>
-      <span class="mode-desc"></span>
+      ${modeArt(mode.suit)}
+      <span class="mode-body">
+        <span class="mode-name"></span>
+        <span class="mode-desc"></span>
+      </span>
       <span class="mode-soon"></span>`;
     if (mode.soon) {
       card.disabled = true;

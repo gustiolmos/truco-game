@@ -660,46 +660,119 @@ body::after {
 /* Una sola cara del cartel a la vez. */
 .overlay-card[hidden] { display: none; }
 
-.modes-card { min-width: min(660px, 93vw); }
+/* Esta pantalla no es un cuadro de diálogo: ocupa el alto entero y no lleva
+   marco, para que el mosaico sea lo único que se mire. */
+.modes-card {
+  width: min(1180px, 95vw);
+  max-height: 94vh;
+  overflow-y: auto;
+  background: none;
+  box-shadow: none;
+  padding: calc(var(--px) * 4) calc(var(--px) * 2);
+}
 
-/* Tres columnas: Historia ocupa el ancho entero arriba, los tres que no
-   existen todavía van chicos en el medio, y lo único jugable cierra abajo
-   también a lo ancho. El tamaño dice qué importa antes de leer nada. */
+/* Encabezado con filete a los costados y un rombo al medio. */
+.modes-card h1 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: calc(var(--px) * 4);
+  font-size: clamp(1.3rem, 3vw, 2rem);
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+.modes-card h1::before,
+.modes-card h1::after {
+  content: '';
+  flex: 1;
+  max-width: 180px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4));
+}
+.modes-card h1::after { transform: scaleX(-1); }
+
+/* Mosaico de cuatro columnas con piezas de distinto tamaño: Historia manda
+   arriba a la izquierda, Online hace de columna alta a la derecha, y lo
+   único jugable cierra abajo a lo ancho. */
 .modes {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
+  grid-auto-rows: minmax(92px, auto);
   gap: calc(var(--px) * 2);
-  margin: calc(var(--px) * 5) 0 calc(var(--px) * 4);
+  margin: calc(var(--px) * 5) 0 calc(var(--px) * 3);
 }
+/* Posiciones explícitas y no "span": dejando que la grilla acomode sola,
+   las piezas altas abren huecos. Queda Historia grande a la izquierda,
+   dos chicas apiladas al medio, Online de columna alta a la derecha, y lo
+   jugable a lo ancho abajo. */
+.mode-big { grid-column: 1 / 3; grid-row: 1 / 3; }
+.mode-tall { grid-column: 4; grid-row: 1 / 3; }
+.mode-wide { grid-column: 1 / -1; }
+
 .mode {
+  position: relative;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
   justify-content: flex-end;
-  gap: calc(var(--px) * 0.75);
-  text-align: left;
-  padding: calc(var(--px) * 3);
-  min-height: calc(var(--px) * 19);
+  align-items: stretch;
+  padding: 0;
+  min-height: 92px;
   border-radius: var(--r);
   background: var(--panel);
   box-shadow: inset 0 0 0 1px var(--line);
   color: var(--ink);
   letter-spacing: 0;
+  text-align: left;
+  transition: transform 0.14s ease, box-shadow 0.14s ease;
 }
-.mode-big {
-  grid-column: 1 / -1;
-  min-height: calc(var(--px) * 32);
-  background:
-    radial-gradient(120% 90% at 20% 0%, rgba(255, 194, 51, 0.16), transparent 60%),
-    var(--panel);
-}
-.mode-wide { grid-column: 1 / -1; min-height: calc(var(--px) * 16); }
 
-.mode-name { font-size: 1rem; font-weight: 800; }
-.mode-big .mode-name { font-size: 1.9rem; }
-.mode-wide .mode-name { font-size: 1.3rem; }
+/* El arte: el palo enorme, recortado por el borde de la ficha, sobre un
+   degradado de su propio color. Sale del lenguaje que ya tiene el juego. */
+.mode-art {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(120% 120% at 18% 0%, var(--accent-soft), transparent 62%),
+    linear-gradient(160deg, rgba(255, 255, 255, 0.06), transparent 55%);
+}
+.art-suit {
+  position: absolute;
+  right: -8%;
+  bottom: -22%;
+  width: 62%;
+  height: auto;
+  opacity: 0.5;
+  transform: rotate(-12deg);
+  image-rendering: pixelated;
+  shape-rendering: crispEdges;
+  transition: transform 0.25s ease, opacity 0.25s ease;
+}
+.mode-big .art-suit { width: 48%; right: 4%; bottom: -14%; }
+.mode-wide .art-suit { width: 16%; right: 3%; bottom: -26%; }
+
+/* El texto va sobre un velo oscuro, no sobre el arte pelado: si no, el
+   nombre se pierde justo encima del palo. */
+.mode-body {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--px) * 0.5);
+  padding: calc(var(--px) * 3);
+  background: linear-gradient(0deg, rgba(8, 20, 16, 0.88), transparent);
+}
+.mode-name {
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.mode-big .mode-name { font-size: 1.7rem; }
+.mode-wide .mode-name { font-size: 1.25rem; }
 .mode-desc {
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   font-weight: 400;
   color: var(--muted);
   line-height: 1.3;
@@ -707,39 +780,44 @@ body::after {
 }
 .mode-big .mode-desc { font-size: 0.92rem; }
 
-/* La etiqueta de "próximamente" va arriba a la derecha, no en el nombre:
-   así el modo se lee igual y el estado se lee aparte. */
+/* El estado va arriba a la derecha, aparte del nombre: así el modo se lee
+   igual y el "todavía no" se lee como otra cosa. */
 .mode-soon:not(:empty) {
   position: absolute;
   top: calc(var(--px) * 2);
   right: calc(var(--px) * 2);
-  font-size: 0.6rem;
+  font-size: 0.58rem;
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--gold);
-  background: rgba(0, 0, 0, 0.35);
+  background: rgba(0, 0, 0, 0.5);
   padding: 2px calc(var(--px) * 1.5);
   border-radius: 999px;
 }
-.mode { position: relative; }
 
-.mode.is-soon { opacity: 0.5; cursor: default; }
-.mode.is-soon:hover { transform: none; background: var(--panel); }
+.mode.is-soon { cursor: default; }
+.mode.is-soon .mode-art { filter: grayscale(0.75) brightness(0.7); }
+.mode.is-soon .mode-name { color: var(--muted); }
 
-/* Lo jugable se distingue por el borde, no por el color de fondo: no tiene
-   que gritar más que Historia, sólo verse disponible. */
-.mode:not(.is-soon) { box-shadow: inset 0 0 0 2px var(--green); }
+/* Lo jugable se marca con su color, no con más tamaño: no tiene que
+   competir con Historia, sólo verse disponible. */
+.mode:not(.is-soon) { box-shadow: inset 0 0 0 2px var(--accent); }
 .mode:not(.is-soon):hover {
-  background: var(--panel-2);
-  transform: translateY(calc(var(--px) * -0.5));
+  transform: translateY(calc(var(--px) * -0.75));
+  box-shadow: inset 0 0 0 2px var(--accent), 0 10px 24px rgba(0, 0, 0, 0.45);
 }
+.mode:not(.is-soon):hover .art-suit {
+  transform: rotate(-6deg) scale(1.08);
+  opacity: 0.7;
+}
+.mode:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
 
 /* Botón secundario: para volver, que nunca tiene que competir con la
    acción principal de la pantalla. */
 .ghost {
   display: block;
-  margin: calc(var(--px) * 3) auto 0;
+  margin: calc(var(--px) * 2) auto 0;
   background: transparent;
   box-shadow: none;
   color: var(--muted);
@@ -747,9 +825,12 @@ body::after {
 }
 .ghost:hover { background: rgba(255, 255, 255, 0.08); color: var(--ink); }
 
-@media (max-width: 560px) {
-  .modes { grid-template-columns: 1fr 1fr; }
-  .mode-big, .mode-wide { grid-column: 1 / -1; }
+@media (max-width: 720px) {
+  .modes { grid-template-columns: repeat(2, 1fr); }
+  .mode-big { grid-column: 1 / -1; grid-row: auto; min-height: 180px; }
+  .mode-tall { grid-column: auto; grid-row: auto; }
+  .modes-card h1 { letter-spacing: 0.12em; }
+  .modes-card h1::before, .modes-card h1::after { max-width: 40px; }
 }
 
 /* Selector de dos o tres opciones excluyentes, en una sola pieza: se ve de
