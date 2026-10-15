@@ -105,10 +105,23 @@ body::before {
   margin-left: auto;
 }
 
+/* La fila de la mano propia: las cartas centradas y el contador de envido
+   al costado, a la misma altura de los ojos que las cartas. */
+.hand-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 /* Contador de envido: la suma ya hecha, para no tener que sumarla en la
    cabeza. Se apaga cuando el envido ya no se puede cantar, así el color
    también dice si todavía sirve para algo. */
 .envido {
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
   display: flex;
   align-items: center;
   gap: calc(var(--px) * 2);
@@ -541,9 +554,13 @@ button.bad:hover { background: #5e374b; }
 @media (max-width: 560px) {
   :root { --px: 3px; }
   .num, .envido-num { font-size: 1.8rem; }
-  /* En pantalla chica el rótulo "Envido" se come el ancho del marcador.
-     El número solo, en azul y pegado al marcador, se entiende igual. */
-  .envido .who { display: none; }
+  /* En pantalla angosta no queda lugar al costado de las cartas, así que el
+     contador pasa arriba de la mano. Sigue a la vista sin tapar nada. */
+  .hand-row { flex-direction: column; gap: calc(var(--px) * 2); }
+  .envido {
+    position: static;
+    transform: none;
+  }
   .hud { gap: calc(var(--px) * 2); }
   button { font-size: 0.92rem; padding: calc(var(--px) * 3) calc(var(--px) * 5); }
   .log { bottom: calc(var(--px) * 20); }
