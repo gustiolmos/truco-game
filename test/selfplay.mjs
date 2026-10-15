@@ -25,6 +25,22 @@ for (const [h, expected] of cases) {
   const got = envidoPoints(h);
   if (got !== expected) throw new Error(`envido ${h.map((c) => c.id)} => ${got}, esperaba ${expected}`);
 }
+// El contador de envido de la UI muestra un número fijo durante toda la
+// ronda, así que el motor tiene que contarlo sobre las tres cartas
+// repartidas y no sobre las que quedan en la mano.
+{
+  const g = new TrucoGame({ target: 15 });
+  const before = [g.envidoPointsOf(0), g.envidoPointsOf(1)];
+  for (let i = 0; i < 2; i++) {
+    const play = g.legalActions(g.turn).find((a) => a.type === 'play');
+    if (play) g.act(g.turn, play);
+  }
+  const after = [g.envidoPointsOf(0), g.envidoPointsOf(1)];
+  if (before[0] !== after[0] || before[1] !== after[1]) {
+    throw new Error(`el envido cambió al jugar cartas: ${before} => ${after}`);
+  }
+}
+
 console.log('envido: ok');
 
 // --- jerarquía ---

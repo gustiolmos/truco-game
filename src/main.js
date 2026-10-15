@@ -15,6 +15,7 @@ const el = {
   slotHuman: $('slot-human'), slotCpu: $('slot-cpu'),
   numHuman: $('num-human'), numCpu: $('num-cpu'),
   pot: $('pot'), tricks: $('tricks'),
+  envido: $('envido'), envidoNum: $('envido-num'),
   mute: $('mute'),
   overlay: $('overlay'), oTitle: $('overlay-title'), oText: $('overlay-text'), oBtn: $('overlay-btn'),
 };
@@ -46,6 +47,7 @@ function startRoundUI() {
   });
   drawHumanHand();
   dealSounds();
+  lastEnvido = null;
   say(game.mano === HUMAN ? 'Sos mano.' : 'Es mano el rival.');
   render();
   if (game.turn === CPU) queueCpu();
@@ -114,6 +116,8 @@ function render() {
   const v = game.roundValue();
   el.pot.textContent = `${v} ${v === 1 ? 'punto' : 'puntos'} en juego`;
 
+  renderEnvido();
+
   // cartas de la mano propia habilitadas sólo si se pueden tirar
   const legal = game.legalActions(HUMAN);
   const playable = new Set(legal.filter((a) => a.type === 'play').map((a) => a.cardId));
@@ -121,6 +125,25 @@ function render() {
     node.classList.toggle('disabled', !playable.has(node.dataset.cardId));
   }
   renderActions(legal);
+}
+
+// El envido no cambia durante la ronda (se cuenta sobre las tres cartas
+// repartidas, se hayan jugado o no), así que sólo late cuando cambia de
+// verdad: al repartir.
+let lastEnvido = null;
+
+function renderEnvido() {
+  const points = game.envidoPointsOf(HUMAN);
+  const live = !game.envidoDone && game.trick === 0;
+
+  if (points !== lastEnvido) {
+    el.envidoNum.textContent = points;
+    el.envidoNum.classList.remove('pulse');
+    void el.envidoNum.offsetWidth;   // reinicia la animación
+    el.envidoNum.classList.add('pulse');
+    lastEnvido = points;
+  }
+  el.envido.classList.toggle('spent', !live);
 }
 
 function renderActions(legal) {

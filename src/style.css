@@ -111,7 +111,38 @@ body::before {
   background: #2a1a5e;
   box-shadow: inset 0 0 0 var(--px) var(--line);
 }
-#score-human { margin-left: auto; }
+.hud-right {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--px) * 2);
+  margin-left: auto;
+}
+
+/* Contador de envido: la suma ya hecha, para no tener que sumarla en la
+   cabeza. Se apaga cuando el envido ya no se puede cantar, así el color
+   también dice si todavía sirve para algo. */
+.envido {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--px) * 2);
+  padding: calc(var(--px) * 2) calc(var(--px) * 3);
+  clip-path: var(--pixel-corners);
+  background: #2a1a5e;
+  box-shadow: inset 0 0 0 var(--px) var(--blue);
+}
+.envido-num {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--blue);
+  font-variant-numeric: tabular-nums;
+}
+.envido.spent {
+  box-shadow: inset 0 0 0 var(--px) var(--line);
+  opacity: 0.45;
+}
+.envido.spent .envido-num { color: var(--muted); }
+.envido-num.pulse { animation: pop 0.3s steps(4, end); }
+
 .who {
   font-size: 0.74rem;
   letter-spacing: 0.1em;
@@ -444,7 +475,11 @@ button.bad:hover { background: #5e374b; }
 
 @media (max-width: 560px) {
   :root { --px: 3px; }
-  .num { font-size: 1.4rem; }
+  .num, .envido-num { font-size: 1.4rem; }
+  /* En pantalla chica el rótulo "Envido" se come el ancho del marcador.
+     El número solo, en azul y pegado al marcador, se entiende igual. */
+  .envido .who { display: none; }
+  .hud { gap: calc(var(--px) * 2); }
   button { font-size: 0.74rem; padding: calc(var(--px) * 3) calc(var(--px) * 4); }
   .log { bottom: calc(var(--px) * 20); }
 }
