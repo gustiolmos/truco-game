@@ -373,8 +373,12 @@ body::after {
 .envido {
   position: absolute;
   left: 50%;
-  top: 0;
-  transform: translateX(-50%);
+  /* Por encima del borde de arriba de la mano: las cartas del abanico
+     llegan hasta el tope de la fila, así que apoyado dentro quedaba tapado.
+     El z-index lo pone delante de la mano pero detrás de los botones. */
+  top: calc(var(--px) * -2);
+  transform: translate(-50%, -100%);
+  z-index: 25;
   display: flex;
   align-items: baseline;
   gap: calc(var(--px) * 1.5);

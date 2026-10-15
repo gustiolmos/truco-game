@@ -261,10 +261,12 @@ function renderActions(legal) {
     el.actions.appendChild(b);
   };
 
-  if (game.pending) {
-    add(t('action.accept'), 'good', { type: 'accept' });
-    add(t('action.reject'), 'bad', { type: 'reject' });
-  }
+  // Aceptar primero, después lo que se puede subir, y negar siempre
+  // último. Que "no quiero" quede siempre en el mismo extremo hace que se
+  // apriete sin leer; si se corriera según cuántos recantos haya, habría
+  // que buscarlo cada vez.
+  if (game.pending) add(t('action.accept'), 'good', { type: 'accept' });
+
   for (const a of legal) {
     if (a.type === 'truco') {
       add(callLabel(TRUCO_CHAIN[game.trucoLevel].key), 'hot', a);
@@ -272,6 +274,8 @@ function renderActions(legal) {
       add(callLabel(a.call), '', a);
     }
   }
+
+  if (game.pending) add(t('action.reject'), 'bad', { type: 'reject' });
 }
 
 function say(text) { el.log.textContent = text; }
