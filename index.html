@@ -11,23 +11,38 @@
 
 <div id="stage">
   <header class="hud">
-    <div class="hud-left">
-      <button class="menu-btn" id="menu-btn" type="button">☰</button>
-      <div class="score" id="score-cpu">
-        <span class="who" id="who-rival">Rival</span>
-        <span class="num" id="num-cpu">0</span>
+    <button class="menu-btn" id="menu-btn" type="button">☰</button>
+
+    <div class="vitals">
+      <div class="vital vital-left" id="vital-human">
+        <div class="vital-tag">
+          <span class="who" id="who-you">Vos</span>
+          <span class="num" id="num-human">15</span>
+        </div>
+        <div class="vital-bar">
+          <i class="vital-chip"></i>
+          <i class="vital-fill"></i>
+          <span class="vital-ticks" aria-hidden="true"></span>
+        </div>
+      </div>
+
+      <div class="vital vital-right" id="vital-cpu">
+        <div class="vital-bar">
+          <i class="vital-chip"></i>
+          <i class="vital-fill"></i>
+          <span class="vital-ticks" aria-hidden="true"></span>
+        </div>
+        <div class="vital-tag">
+          <span class="num" id="num-cpu">15</span>
+          <span class="who" id="who-rival">Rival</span>
+        </div>
       </div>
     </div>
+
     <div class="round-info">
       <div class="pot" id="pot">1 punto en juego</div>
       <div class="tricks" id="tricks"></div>
       <div class="log" id="log"></div>
-    </div>
-    <div class="hud-right">
-      <div class="score" id="score-human">
-        <span class="who" id="who-you">Vos</span>
-        <span class="num" id="num-human">0</span>
-      </div>
     </div>
   </header>
 

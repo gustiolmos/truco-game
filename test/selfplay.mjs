@@ -44,6 +44,37 @@ for (const [h, expected] of cases) {
 
 console.log('envido: ok');
 
+// --- barras de vida ---
+// El HUD muestra vida, no puntos: tu vida es lo que le falta al rival para
+// llegar al objetivo. Al terminar, el perdedor tiene que quedar en cero y
+// el ganador no. Ojo que en truco se puede pasar del objetivo (ganar 16 a 8
+// con un vale cuatro), así que la vida se clampea en cero.
+{
+  const TARGET = 15;
+  const shown = (g, player) => Math.max(0, TARGET - g.scores[1 - player]);
+  let over = 0;
+
+  for (let n = 0; n < 300; n++) {
+    const g = new TrucoGame({ target: TARGET });
+    let guard = 0;
+    while (g.winner === null && guard++ < 5000) {
+      if (g.roundOver) { g.nextRound(); continue; }
+      const acts = g.legalActions(g.turn);
+      if (!acts.length) break;
+      g.act(g.turn, acts[Math.floor(rng() * acts.length)]);
+    }
+    if (Math.max(...g.scores) > TARGET) over++;
+    const loser = 1 - g.winner;
+    if (shown(g, loser) !== 0) {
+      throw new Error(`el perdedor terminó con ${shown(g, loser)} de vida: ${g.scores}`);
+    }
+    if (shown(g, g.winner) <= 0) {
+      throw new Error(`el ganador terminó sin vida: ${g.scores}`);
+    }
+  }
+  console.log(`barras de vida: ok (${over} partidas se pasaron del objetivo, se clampean)`);
+}
+
 // --- irse al mazo ---
 // Entregar la ronda le da al otro lo que hubiera en juego en ese momento,
 // ni más ni menos. Si esto se desfasa, el jugador paga de más por rendirse.

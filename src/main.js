@@ -20,6 +20,7 @@ const el = {
   deck: $('deck'), deckLabel: $('deck-label'),
   envido: $('envido'), envidoNum: $('envido-num'),
   whoRival: $('who-rival'), whoYou: $('who-you'), whoEnvido: $('who-envido'),
+  vitalHuman: $('vital-human'), vitalCpu: $('vital-cpu'),
   langsOverlay: $('langs-overlay'), langsMenu: $('langs-menu'),
   menuBtn: $('menu-btn'), menu: $('menu'), menuTitle: $('menu-title'),
   menuSound: $('menu-sound'), menuVolume: $('menu-volume'),
@@ -35,14 +36,49 @@ let game;
 let busy = false;
 
 const TRICK_SLOT = [el.slotHuman, el.slotCpu];
+const TARGET = 15;
 
 function newGame() {
-  game = new TrucoGame({ target: 15 });
+  game = new TrucoGame({ target: TARGET });
   game.on(onEvent);
   el.overlay.hidden = true;
-  el.numHuman.textContent = '0';
-  el.numCpu.textContent = '0';
+  paintVitals();
   startRoundUI();
+}
+
+// ---- barras de vida ---------------------------------------------------
+
+// No se muestra cuántos puntos hiciste sino cuánta vida te queda: los
+// puntos del otro son el daño. Tu vida es lo que le falta al rival para
+// llegar al objetivo.
+const lifeOf = (player) => game.target - game.scores[other(player)];
+
+const vitalOf = (player) => (player === HUMAN ? el.vitalHuman : el.vitalCpu);
+const numOf = (player) => (player === HUMAN ? el.numHuman : el.numCpu);
+
+// Barras llenas, sin partida en curso.
+function resetVitals() {
+  for (const root of [el.vitalHuman, el.vitalCpu]) {
+    root.querySelector('.vital-fill').style.transform = 'scaleX(1)';
+    root.querySelector('.vital-chip').style.transform = 'scaleX(1)';
+    root.classList.remove('is-mid', 'is-low', 'hit');
+  }
+  el.numHuman.textContent = String(TARGET);
+  el.numCpu.textContent = String(TARGET);
+}
+
+function paintVitals() {
+  if (!game) return;
+  for (const player of [HUMAN, CPU]) {
+    const life = Math.max(0, lifeOf(player));
+    const ratio = life / game.target;
+    const root = vitalOf(player);
+    root.querySelector('.vital-fill').style.transform = `scaleX(${ratio})`;
+    root.querySelector('.vital-chip').style.transform = `scaleX(${ratio})`;
+    root.classList.toggle('is-mid', ratio <= 0.6 && ratio > 0.3);
+    root.classList.toggle('is-low', ratio <= 0.3);
+    numOf(player).textContent = String(life);
+  }
 }
 
 function startRoundUI() {
@@ -57,6 +93,7 @@ function startRoundUI() {
   fan(el.handCpu, FAN_CPU);
   drawHumanHand();
   dealSounds();
+  paintVitals();
   lastEnvido = null;
   say(game.mano === HUMAN ? t('log.youAreMano') : t('log.rivalIsMano'));
   render();
@@ -350,17 +387,34 @@ function onEvent(e) {
     case 'round-end':
       break;
     case 'score': {
-      const node = e.player === HUMAN ? el.numHuman : el.numCpu;
-      const from = e.scores[e.player] - e.points;
+      // Quien suma le saca vida al otro: el golpe se ve en la barra del
+      // que recibe, no en la del que anota.
+      const hurt = other(e.player);
+      const node = numOf(hurt);
+      const after = Math.max(0, game.target - e.scores[e.player]);
+      const before = after + e.points;
       const mine = e.player === HUMAN;
-      fx.pop(`${mine ? '+' : '−'}${e.points}`,
-        { over: el.table, tone: mine ? 'good' : 'bad' });
+
+      fx.pop(`−${e.points}`, { over: el.table, tone: mine ? 'good' : 'bad' });
+
+      const root = vitalOf(hurt);
+      root.classList.remove('hit');
+      void root.offsetWidth;          // reinicia la sacudida
+      root.classList.add('hit');
+      setTimeout(() => root.classList.remove('hit'), 400);
+
       let step = 0;
-      countUp(node, from, e.scores[e.player], () => {
-        fx.burstAt(node, { count: 14, hue: e.player === HUMAN ? 50 : 340, power: 5 });
+      countUp(node, before, after, (value) => {
+        fx.burstAt(node, { count: 14, hue: mine ? 50 : 340, power: 5 });
         fx.kick(7);
         audio.play('point', { volume: 0.8 + step * 0.06, spread: 0 });
         step++;
+        // La barra acompaña al número, de a un punto por vez.
+        const ratio = Math.max(0, value) / game.target;
+        root.querySelector('.vital-fill').style.transform = `scaleX(${ratio})`;
+        root.querySelector('.vital-chip').style.transform = `scaleX(${ratio})`;
+        root.classList.toggle('is-mid', ratio <= 0.6 && ratio > 0.3);
+        root.classList.toggle('is-low', ratio <= 0.3);
       });
       break;
     }
@@ -544,9 +598,8 @@ function quitMatch() {
   el.tricks.innerHTML = '';
   el.deck.disabled = true;
   deckArmed = false;
+  resetVitals();
   say('');
-  el.numHuman.textContent = '0';
-  el.numCpu.textContent = '0';
   showOverlay('game.title', ['game.subtitle'], 'game.play', newGame);
 }
 

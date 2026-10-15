@@ -99,113 +99,142 @@ body::after {
 }
 
 /* ---------- HUD ---------- */
-.hud {
-  display: grid;
-  /* minmax(0, 1fr) y no 1fr a secas: con 1fr la columna nunca baja del
-     ancho de su contenido, y la izquierda lleva el menú además del
-     marcador. Así las dos miden igual y el centro cae en el medio. */
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-  align-items: center;
-  gap: calc(var(--px) * 3);
-}
-.score {
-  display: flex;
-  align-items: center;
-  gap: calc(var(--px) * 2);
-  padding: calc(var(--px) * 2.5) calc(var(--px) * 4);
-  width: fit-content;
-  border-radius: var(--r);
-  background: var(--panel);
-  box-shadow: inset 0 0 0 var(--px) var(--line);
-}
-.hud-left,
-.hud-right {
-  display: flex;
-  align-items: center;
-  gap: calc(var(--px) * 2);
-}
-.hud-right { justify-content: flex-end; }
 
-/* La fila de la mano propia: las cartas centradas y el contador de envido
-   al costado, a la misma altura de los ojos que las cartas. */
-.hand-row {
+/* El menú flota a la izquierda y no participa del centrado: si fuera una
+   columna más, correría todo lo demás hacia la derecha. */
+.hud {
   position: relative;
   display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Contador de envido: la suma ya hecha, para no tener que sumarla en la
-   cabeza. Se apaga cuando el envido ya no se puede cantar, así el color
-   también dice si todavía sirve para algo. */
-.envido {
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  display: flex;
+  flex-direction: column;
   align-items: center;
   gap: calc(var(--px) * 2);
-  padding: calc(var(--px) * 2.5) calc(var(--px) * 4);
-  border-radius: var(--r);
-  background: var(--panel);
-  box-shadow: inset 0 0 0 var(--px) var(--blue);
 }
-.envido-num {
-  font-size: 2.1rem;
-  font-weight: 700;
-  color: var(--blue);
-  font-variant-numeric: tabular-nums;
+
+/* ---------- barras de vida ---------- */
+
+/* No es una barra de progreso: arranca llena y se vacía. Cada uno tiene 15
+   de vida y los puntos del otro se la sacan. Las dos se vacían hacia el
+   centro, como en un juego de pelea, y el jugador va siempre a la
+   izquierda para que no haya que pensar cuál es la propia. */
+.vitals {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--px) * 3);
+  width: min(880px, 94vw);
 }
-.envido.spent {
-  box-shadow: inset 0 0 0 var(--px) var(--line);
-  opacity: 0.45;
+.vital {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: calc(var(--px) * 3);
+  min-width: 0;
 }
-.envido.spent .envido-num { color: var(--muted); }
-.envido-num.pulse { animation: pop 0.3s steps(4, end); }
+.vital-tag {
+  display: flex;
+  align-items: baseline;
+  gap: calc(var(--px) * 2);
+  white-space: nowrap;
+}
+.vital-right .vital-tag { flex-direction: row; }
 
 .who {
-  font-size: 0.86rem;
-  font-weight: 600;
-  letter-spacing: 0.1em;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--muted);
 }
 .num {
-  font-size: 2.4rem;
-  font-weight: 700;
+  font-size: 1.9rem;
+  font-weight: 800;
   font-variant-numeric: tabular-nums;
-}
-/* El pop del contador va en pasos: el pixelart no hace easing suave. */
-.num.pulse { animation: pop 0.3s steps(4, end); }
-@keyframes pop {
-  0% { transform: scale(1); }
-  40% { transform: scale(1.6); color: var(--gold); }
-  100% { transform: scale(1); }
+  color: var(--ink);
+  min-width: 1.6em;
+  text-align: center;
 }
 
-.round-info { text-align: center; }
-.pot {
-  font-weight: 600;
-  font-size: 1.2rem;
-  color: var(--gold);
-  /* "Glow" pixelado: sombra dura desplazada, no un halo difuso. */
-  text-shadow: var(--px) var(--px) 0 rgba(0, 0, 0, 0.5);
+/* El marco grueso y hundido es lo que la separa de una barra de progreso,
+   que suele ser una pastilla fina y lisa. */
+.vital-bar {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  height: calc(var(--px) * 7);
+  border-radius: 3px;
+  background: #0c1a16;
+  border: 2px solid #0a120f;
+  box-shadow:
+    inset 0 3px 6px rgba(0, 0, 0, 0.7),
+    0 1px 0 rgba(255, 255, 255, 0.12);
+  overflow: hidden;
 }
-.tricks { display: flex; gap: var(--px); justify-content: center; margin-top: calc(var(--px) * 2); }
-.tricks i {
-  width: calc(var(--px) * 3);
-  height: calc(var(--px) * 3);
-  border-radius: 50%;
-  background: var(--panel-2);
-  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.45);
+
+.vital-fill,
+.vital-chip {
+  position: absolute;
+  inset: 0;
+  display: block;
+  transform: scaleX(1);
 }
-.tricks i.w { background: var(--green); }
-.tricks i.l { background: var(--red); }
-.tricks i.p { background: var(--muted); }
+.vital-left .vital-fill,
+.vital-left .vital-chip { transform-origin: left center; }
+.vital-right .vital-fill,
+.vital-right .vital-chip { transform-origin: right center; }
+
+/* La vida baja al toque; el rastro blanco la sigue con retraso. Ese rastro
+   es la marca registrada de una barra de vida: muestra cuánto te acaban de
+   sacar, no sólo cuánto te queda. */
+.vital-fill {
+  background: linear-gradient(180deg, #6ee787 0%, var(--green) 45%, #1f8d3f 100%);
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.25);
+  transition: transform 0.22s cubic-bezier(0.3, 1.4, 0.5, 1), background 0.3s;
+}
+.vital-chip {
+  background: rgba(255, 255, 255, 0.75);
+  transition: transform 0.45s ease-in 0.35s;
+}
+
+/* Muescas de a un punto: se ve cuánto falta sin leer el número. */
+.vital-ticks {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to right,
+    transparent 0 calc(100% / 15 - 1px),
+    rgba(0, 0, 0, 0.45) calc(100% / 15 - 1px) calc(100% / 15)
+  );
+}
+
+/* Cuanto menos vida, más caliente el color. Una barra de progreso no cambia
+   de color: una de vida avisa. */
+.vital.is-mid .vital-fill {
+  background: linear-gradient(180deg, #ffe066 0%, var(--gold) 45%, #c98a00 100%);
+}
+.vital.is-low .vital-fill {
+  background: linear-gradient(180deg, #ff8fa0 0%, var(--red) 45%, #a3102a 100%);
+  animation: vital-pulse 0.9s ease-in-out infinite;
+}
+@keyframes vital-pulse {
+  50% { filter: brightness(1.45); }
+}
+
+/* Golpe recibido: la barra se sacude y destella. */
+.vital.hit .vital-bar { animation: vital-hit 0.34s ease-out; }
+@keyframes vital-hit {
+  0%   { transform: translateX(0); filter: brightness(2.2); }
+  25%  { transform: translateX(-5px); }
+  55%  { transform: translateX(4px); }
+  80%  { transform: translateX(-2px); }
+  100% { transform: translateX(0); filter: brightness(1); }
+}
+.vital.hit .num { color: var(--red); }
 
 /* Botón del menú: lo único que queda de configuración sobre la mesa. */
 .menu-btn {
+  position: absolute;
+  left: 0;
+  top: 0;
   font-size: 1.3rem;
   line-height: 1;
   padding: calc(var(--px) * 2) calc(var(--px) * 3);
