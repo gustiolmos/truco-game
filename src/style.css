@@ -681,7 +681,14 @@ body::after {
 .seg[aria-disabled='true'] { opacity: 0.45; }
 .seg[aria-disabled='true'] button { cursor: default; pointer-events: none; }
 
-#target-overlay { margin-top: calc(var(--px) * 4); }
+/* En el cartel de inicio va en su propio renglón, debajo de Jugar: como
+   inline-flex se acomodaba al lado del botón. */
+#target-overlay {
+  display: flex;
+  justify-content: center;
+  width: fit-content;
+  margin: calc(var(--px) * 4) auto 0;
+}
 
 /* ---------- mazo ---------- */
 
