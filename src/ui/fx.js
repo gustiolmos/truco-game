@@ -1,7 +1,23 @@
 // Capa de efectos: partículas en canvas, sacudida de pantalla y carteles de canto.
-// Todo se apaga solo con prefers-reduced-motion.
 
-const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+// Los efectos se pueden apagar: por accesibilidad, porque en un equipo
+// flojo cuestan, y porque un juego que se vende tiene que poder bajarle el
+// volumen a lo que parpadea. El sistema decide el arranque; el jugador
+// manda por encima desde el menú.
+const systemReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+let reduced = systemReduced;
+
+export const prefersReduced = () => reduced;
+export const systemPrefersReduced = systemReduced;
+
+// Pasarle `null` devuelve la decisión al sistema. El atributo en <html> es
+// lo que apaga las animaciones de CSS; el resto lo miran las funciones de
+// acá antes de dibujar nada.
+export function setReducedEffects(value) {
+  reduced = value === null ? systemReduced : Boolean(value);
+  document.documentElement.dataset.fx = reduced ? 'off' : 'on';
+}
+setReducedEffects(null);
 
 // Tamaño del píxel lógico: tiene que coincidir con --px del CSS.
 const PX = 4;
@@ -28,7 +44,9 @@ export class Fx {
     this.ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   }
 
-  burst(x, y, { count = 36, hue = 45, power = 7 } = {}) {
+  //  negativa son brasas: suben en vez de caer. Es lo único que
+  // distingue una chispa de un fuego que trepa.
+  burst(x, y, { count = 36, hue = 45, power = 7, gravity = 0.22 } = {}) {
     if (reduced) return;
     for (let i = 0; i < count; i++) {
       const a = Math.random() * Math.PI * 2;
@@ -41,6 +59,7 @@ export class Fx {
         decay: 0.012 + Math.random() * 0.02,
         size: PX * (1 + Math.floor(Math.random() * 2)),
         hue: hue + (Math.random() - 0.5) * 40,
+        gravity,
       });
     }
   }
@@ -51,15 +70,21 @@ export class Fx {
     this.burst(r.left + r.width / 2, r.top + r.height / 2, opts);
   }
 
+  // En pantalla chica la misma sacudida se siente el doble: la pantalla
+  // es más chica, el pulgar la sostiene y el movimiento se lee como un
+  // temblor y no como un golpe. Se baja ahí, no en todos lados.
   kick(amount = 10) {
     if (reduced) return;
-    this.shake = Math.max(this.shake, amount);
+    const scale = window.innerWidth < 560 ? 0.68 : 1;
+    this.shake = Math.max(this.shake, amount * scale);
   }
 
   // "+3" saltando sobre la mesa. La posición se saltea al azar dentro del
   // área que se le pase: dos puntos seguidos en el mismo pixel se leerían
   // como un solo número parpadeando.
-  pop(text, { over = null, tone = 'good' } = {}) {
+  // `scale` hace que un +4 entre más grande que un +1: el número no sólo
+  // dice cuánto sumaste, también lo ocupa.
+  pop(text, { over = null, tone = 'good', scale = 1 } = {}) {
     const host = this.stage;
     const base = host.getBoundingClientRect();
     const area = (over ?? host).getBoundingClientRect();
@@ -68,6 +93,7 @@ export class Fx {
     const node = document.createElement('div');
     node.className = `pop pop-${tone}`;
     node.textContent = text;
+    node.style.fontSize = `calc(clamp(1.9rem, 4.6vw, 3.2rem) * ${scale})`;
     node.style.left = `${area.left - base.left + area.width / 2 + jitter(area.width, 0.42)}px`;
     node.style.top = `${area.top - base.top + area.height / 2 + jitter(area.height, 0.34)}px`;
     host.appendChild(node);
@@ -78,7 +104,9 @@ export class Fx {
   // la cola: 'down' para el de abajo (habla hacia arriba), 'up' para el de
   // arriba. Cada boca tiene un solo globo: si llega otro, reemplaza al
   // anterior en vez de encimarse.
-  bubble(text, { from, dir = 'down', tone = 'truco', hold = 1500 } = {}) {
+  // `scale` es cuánto grita: un vale cuatro tiene que entrar más grande que
+  // un truco, porque lo que está en juego es el doble.
+  bubble(text, { from, dir = 'down', tone = 'truco', hold = 1500, scale = 1 } = {}) {
     if (!from) return;
     const key = dir;
     this.bubbles ??= new Map();
@@ -95,6 +123,7 @@ export class Fx {
       ? `${r.top - base.top - 14}px`        // habla el de abajo: globo arriba suyo
       : `${r.bottom - base.top + 14}px`;    // habla el de arriba: globo debajo
     node.style.setProperty('--hold', `${hold}ms`);
+    node.style.setProperty('--bubble-scale', String(scale));
 
     this.stage.appendChild(node);
     this.bubbles.set(key, node);
@@ -111,7 +140,7 @@ export class Fx {
     ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
     for (let i = this.particles.length - 1; i >= 0; i--) {
       const p = this.particles[i];
-      p.vy += 0.22;          // gravedad
+      p.vy += p.gravity ?? 0.22;
       p.vx *= 0.99;
       p.x += p.vx;
       p.y += p.vy;

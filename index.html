@@ -8,10 +8,23 @@
 </head>
 <body>
 <canvas id="fx"></canvas>
+<!-- calor: el borde de la pantalla se prende fuego con el reloj en rojo -->
+<div class="heat" id="heat" aria-hidden="true"></div>
 
 <div id="stage">
   <header class="hud">
     <button class="menu-btn" id="menu-btn" type="button">☰</button>
+
+    <!-- franja de la corrida: sólo aparece jugando el modo libre -->
+    <div class="run-hud" id="run-hud" hidden>
+      <span class="run-chip" id="run-ante"></span>
+      <span class="run-chip" id="run-goal"></span>
+      <span class="run-chip" id="run-hands"></span>
+      <span class="run-chip run-money" id="run-money"></span>
+    </div>
+
+    <!-- modificadores equipados: a la vista durante toda la mano -->
+    <div class="mods-hud" id="mods-hud" hidden></div>
 
     <div class="vitals" id="vitals">
       <div class="vital vital-left" id="vital-human">
@@ -65,6 +78,12 @@
     <span class="deck-label" id="deck-label"></span>
   </button>
 
+  <!-- reloj del turno: sólo aparece cuando está encendido y te toca -->
+  <div class="turn-timer" id="turn-timer" hidden>
+    <i class="turn-timer-fill" id="turn-timer-fill"></i>
+    <span class="turn-timer-num" id="turn-timer-num"></span>
+  </div>
+
   <footer class="actions" id="actions"></footer>
 </div>
 
@@ -85,6 +104,16 @@
     <div class="setting">
       <span class="setting-label" id="label-volume"></span>
       <input class="slider" id="menu-volume" type="range" min="0" max="100" step="5">
+    </div>
+
+    <div class="setting">
+      <span class="setting-label" id="label-effects"></span>
+      <button class="toggle" id="menu-effects" type="button" aria-pressed="true"></button>
+    </div>
+
+    <div class="setting">
+      <span class="setting-label" id="label-timer"></span>
+      <button class="toggle" id="menu-timer" type="button" aria-pressed="true"></button>
     </div>
 
     <div class="setting">
@@ -119,8 +148,67 @@
   <div class="overlay-card length-card" id="screen-length" hidden>
     <h1 id="length-title"></h1>
     <div class="lengths" id="target-overlay" data-variant="cards"></div>
+    <div class="setting setting-timer">
+      <span class="setting-label" id="label-timer-length"></span>
+      <button class="toggle" id="length-timer" type="button" aria-pressed="true"></button>
+    </div>
     <button class="good start" id="length-start" type="button"></button>
     <button class="ghost" id="length-back" type="button"></button>
+  </div>
+
+  <!-- antesala del ante: qué se pide en esta partida corta y con qué contás -->
+  <div class="overlay-card run-card" id="screen-run" hidden>
+    <h1 id="run-title"></h1>
+    <p id="run-text"></p>
+
+    <div class="run-stats">
+      <div class="run-stat">
+        <span class="run-stat-num" id="run-stat-goal"></span>
+        <span class="run-stat-label" id="run-label-goal"></span>
+      </div>
+      <div class="run-stat">
+        <span class="run-stat-num" id="run-stat-hands"></span>
+        <span class="run-stat-label" id="run-label-hands"></span>
+      </div>
+      <div class="run-stat">
+        <span class="run-stat-num" id="run-stat-money"></span>
+        <span class="run-stat-label" id="run-label-money"></span>
+      </div>
+    </div>
+
+    <span class="run-mods-label" id="run-label-mods"></span>
+    <div class="run-mods" id="run-mods"></div>
+
+    <div class="run-seed">
+      <label class="run-seed-label" id="run-label-seed" for="run-seed-input"></label>
+      <input class="run-seed-input" id="run-seed-input" type="text" maxlength="6"
+             autocomplete="off" spellcheck="false">
+    </div>
+
+    <div class="setting setting-timer">
+      <span class="setting-label" id="label-timer-run"></span>
+      <button class="toggle" id="run-timer" type="button" aria-pressed="true"></button>
+    </div>
+    <button class="good start" id="run-start" type="button"></button>
+    <button class="ghost" id="run-restart" type="button"></button>
+    <button class="ghost" id="run-back" type="button"></button>
+  </div>
+
+  <!-- tienda entre antes: maqueta, todavía sin ítems -->
+  <div class="overlay-card shop-card" id="screen-shop" hidden>
+    <h1 id="shop-title"></h1>
+    <p id="shop-text"></p>
+    <div class="shop-slots" id="shop-slots"></div>
+    <button class="ghost" id="shop-next" type="button"></button>
+  </div>
+
+  <!-- fin de corrida, con el resumen de lo que pasó -->
+  <div class="overlay-card runover-card" id="screen-runover" hidden>
+    <h1 id="runover-title"></h1>
+    <p id="runover-text"></p>
+    <ul class="run-summary" id="run-summary"></ul>
+    <button class="good start" id="runover-again" type="button"></button>
+    <button class="ghost" id="runover-back" type="button"></button>
   </div>
 </div>
 

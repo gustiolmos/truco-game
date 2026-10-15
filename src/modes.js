@@ -9,7 +9,7 @@
 
 export const MODES = [
   { id: 'story', size: 'big', suit: 'oro', soon: true },
-  { id: 'free', suit: 'copa', soon: true },
+  { id: 'free', suit: 'copa', soon: false },
   { id: 'tournament', suit: 'espada', soon: true },
   { id: 'online', suit: 'basto', soon: true },
   { id: 'classic', suit: 'espada', soon: false },

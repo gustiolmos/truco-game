@@ -100,7 +100,9 @@ class AudioBus {
 
   // `spread` desafina un poco cada toma: es lo que evita que diez cartas
   // seguidas suenen a metralleta.
-  play(key, { volume = 1, spread = 0.06 } = {}) {
+  // `rate` baja o sube el tono a propósito: un canto más grande suena más
+  // grave, y es la forma barata de que un mismo clip tenga escalones.
+  play(key, { volume = 1, spread = 0.06, rate = 1 } = {}) {
     if (!this.ready || this.muted) return;
     const variants = SOUNDS[key];
     if (!variants) return;
@@ -110,7 +112,7 @@ class AudioBus {
 
     const src = this.ctx.createBufferSource();
     src.buffer = buffer;
-    src.playbackRate.value = 1 + (Math.random() - 0.5) * 2 * spread;
+    src.playbackRate.value = rate + (Math.random() - 0.5) * 2 * spread;
 
     const gain = this.ctx.createGain();
     gain.gain.value = (GAIN[key] ?? 0.7) * volume;

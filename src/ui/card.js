@@ -18,8 +18,12 @@ export function renderCard(card, { faceDown = false } = {}) {
   const el = document.createElement('div');
   el.className = `card${faceDown ? ' is-down' : ''}`;
   el.dataset.cardId = card?.id ?? '';
+  // Cada carta flota con su propio compás: si todas respiraran al mismo
+  // tiempo parecería un solo bloque moviéndose, no cartas sueltas.
+  el.style.setProperty('--float-delay', `${-Math.random() * 3200}ms`);
+  el.style.setProperty('--float-span', `${2600 + Math.random() * 1400}ms`);
   if (faceDown) {
-    el.innerHTML = '<div class="card-inner card-back"></div>';
+    el.innerHTML = '<div class="card-float"><div class="card-inner card-back"></div></div>';
     return el;
   }
 
@@ -37,15 +41,20 @@ export function renderCard(card, { faceDown = false } = {}) {
     ? sprite(`figura-${card.rank}-${card.suit}`, FIGURES[card.rank], 'art')
     : pips(card);
 
+  // `.card-float` existe sólo para la flotación: el abanico mueve a `.card`
+  // y el parallax mueve a `.card-inner`, así que un tercer movimiento
+  // necesita su propia capa o se pisan entre ellos.
   el.innerHTML = `
-    <div class="card-inner">
-      <div class="card-face">
-        <div class="corner tl"><b>${card.rank}</b>${mini}</div>
-        <div class="corner br"><b>${card.rank}</b>${mini}</div>
-        <div class="art-frame">${art}</div>
-        <div class="card-name">${t('card.name', card.rank, t(`suit.${card.suit}`))}</div>
+    <div class="card-float">
+      <div class="card-inner">
+        <div class="card-face">
+          <div class="corner tl"><b>${card.rank}</b>${mini}</div>
+          <div class="corner br"><b>${card.rank}</b>${mini}</div>
+          <div class="art-frame">${art}</div>
+          <div class="card-name">${t('card.name', card.rank, t(`suit.${card.suit}`))}</div>
+        </div>
+        <div class="card-glare"></div>
       </div>
-      <div class="card-glare"></div>
     </div>`;
   attachTilt(el);
   return el;

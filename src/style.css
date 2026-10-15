@@ -457,6 +457,38 @@ body::after {
   from { opacity: 0; transform: translateY(calc(var(--px) * 8)) scale(0.82); }
 }
 
+/* Las cartas nunca se quedan quietas: flotan de arriba a abajo, bien de a
+   poco. Es la diferencia entre una mesa viva y una captura de pantalla.
+   Vive en su propia capa porque el abanico ya mueve a .card y el parallax
+   mueve a .card-inner: tres transformaciones no entran en un solo nodo. */
+.card-float {
+  height: 100%;
+  /* La perspectiva de .card sólo alcanza a su hijo directo: sin esto, el
+     parallax de la carta quedaría chato al meter una capa en el medio. */
+  transform-style: preserve-3d;
+  animation: float var(--float-span, 3200ms) ease-in-out infinite;
+  animation-delay: var(--float-delay, 0ms);
+}
+@keyframes float {
+  0%, 100% { transform: translateY(calc(var(--px) * -0.5)) rotate(-0.35deg); }
+  50% { transform: translateY(calc(var(--px) * 1.1)) rotate(0.35deg); }
+}
+
+/* Mientras vuela a la mesa, la carta no respira: el vuelo ya la mueve, y
+   las dos animaciones juntas la hacen temblar. */
+.card.flying .card-float { animation: none; }
+
+/* Una carta jugada no se reparte: llega volando desde la mano. Si se le
+   dejara la animación de reparto, al terminar el vuelo volvería a
+   dispararse y la carta parpadearía —aparece de nuevo desde opacidad cero—
+   justo al llegar. Tiene que quedarse ahí y listo. */
+/* Una carta que vuela no se reparte: la animación de entrada del CSS es
+   para cuando no hay vuelo. Si se le dejara puesta, al terminar el vuelo
+   volvería a dispararse y la carta parpadearía —aparece de nuevo desde
+   opacidad cero— justo al llegar. Por eso `flown` no se saca nunca. */
+.card.flying,
+.card.flown { animation: none; }
+
 .card-inner {
   position: relative;
   height: 100%;
@@ -919,6 +951,334 @@ body::after {
   padding: calc(var(--px) * 4);
 }
 
+/* ---------- corrida ---------- */
+
+/* La franja de la corrida va arriba de las barras, en su propia fila: es
+   contexto de la partida (en qué ante estás, qué se pide, cuánto llevás), no
+   estado de la ronda. Fila propia y no flotando en una esquina, porque sobre
+   las barras de vida se montaría justo con el marcador. Son pastillas chicas,
+   con el mismo panel y el mismo filete que el resto del HUD. */
+.run-hud {
+  display: flex;
+  gap: var(--px);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.run-hud[hidden] { display: none; }
+.run-chip {
+  padding: calc(var(--px) * 1.25) calc(var(--px) * 2.5);
+  border-radius: 999px;
+  background: var(--panel);
+  box-shadow: inset 0 0 0 1px var(--line);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.run-money { color: var(--gold); }
+
+/* Los botones fantasma declaran display, así que esconderlos pide la
+   regla explícita: si no, [hidden] no gana. */
+#run-restart[hidden] { display: none; }
+
+/* Antesala del ante, tienda y resumen comparten ancho y marco con el
+   selector de largo: son caras del mismo cartel, no pantallas de otro
+   juego. */
+.run-card, .runover-card { width: min(520px, 92vw); }
+/* La tienda es la pantalla donde mas se lee: tres fichas con su texto
+   completo, que se comparan entre si. Necesita ancho propio. */
+.shop-card { width: min(880px, 94vw); }
+
+/* Las tres cifras del ante, del mismo tamaño: el objetivo, las manos que
+   tenés para llegar y lo que llevás ganado. */
+.run-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: calc(var(--px) * 2);
+  margin: calc(var(--px) * 4) 0;
+}
+.run-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(var(--px) * 0.5);
+  padding: calc(var(--px) * 3) calc(var(--px) * 2);
+  border-radius: var(--r);
+  background: var(--panel-2);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+.run-stat-num {
+  font-size: 2rem;
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--gold);
+}
+.run-stat-label {
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* Las ranuras de modificadores y la oferta de la tienda comparten la grilla.
+   La ranura vacía va punteada, que es la convención de "acá falta algo", sin
+   inventar una pieza nueva para decirlo. */
+.run-mods, .shop-slots {
+  display: grid;
+  gap: calc(var(--px) * 2);
+  margin: calc(var(--px) * 4) 0;
+}
+.run-mods { grid-template-columns: repeat(5, 1fr); }
+.shop-slots { grid-template-columns: repeat(3, 1fr); gap: calc(var(--px) * 3); }
+
+.run-mod {
+  display: grid;
+  place-items: center;
+  padding: calc(var(--px) * 2);
+  border-radius: var(--r-sm);
+  border: 2px dashed var(--line);
+  color: var(--muted);
+  font-size: 0.56rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-align: center;
+}
+.run-mod { aspect-ratio: 1; }
+
+
+/* Rotulo de la fila de ranuras: sin el, cinco cuadrados punteados no dicen
+   que son los modificadores. */
+.run-mods-label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.run-mods { margin-top: calc(var(--px) * 1.5); }
+
+/* La semilla: un campo corto, espaciado y en mayúsculas, porque se dicta y
+   se copia carácter por carácter. */
+.run-seed {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: calc(var(--px) * 3);
+  margin-bottom: calc(var(--px) * 5);
+}
+.run-seed-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.run-seed-input {
+  flex: 0 0 auto;
+  width: 7.5em;
+  padding: calc(var(--px) * 2);
+  border: 0;
+  border-radius: var(--r-sm);
+  background: var(--panel-2);
+  box-shadow: inset 0 0 0 1px var(--line);
+  color: var(--ink);
+  font: inherit;
+  font-weight: 800;
+  font-size: 1rem;
+  letter-spacing: 0.18em;
+  text-align: center;
+  text-transform: uppercase;
+}
+.run-seed-input:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.run-seed-input:disabled { color: var(--muted); box-shadow: none; }
+
+/* Resumen de fin de corrida: una línea por dato, sin viñetas. Se lee de un
+   golpe y la semilla se puede copiar desde ahí. */
+.run-summary {
+  margin: 0 0 calc(var(--px) * 6);
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: var(--px);
+  color: var(--muted);
+  font-size: 0.92rem;
+}
+
+@media (max-width: 560px) {
+  /* En angosto las cuatro pastillas no entran en una línea, así que se
+     reparten en dos y hay que achicarlas para que no coman alto de mesa. */
+  .run-chip { font-size: 0.6rem; }
+  .run-mods { grid-template-columns: repeat(5, 1fr); gap: var(--px); }
+}
+
+/* ---------- modificadores ---------- */
+
+/* La franja de equipados vive en el HUD, debajo de la de la corrida, y no se
+   va nunca mientras dure la mano: un modificador que no está a la vista no
+   se puede tener en cuenta al decidir si cantás. */
+.mods-hud {
+  display: flex;
+  gap: var(--px);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.mods-hud[hidden] { display: none; }
+
+.mod-chip {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  gap: calc(var(--px) * 1.5);
+  padding: calc(var(--px)) calc(var(--px) * 2);
+  border-radius: var(--r-sm);
+  background: var(--panel);
+  box-shadow: inset 0 0 0 1px var(--line);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink);
+  white-space: nowrap;
+}
+/* Las ranuras libres se ven igual, apenas marcadas: cuántas te quedan es
+   parte de la decisión de la tienda siguiente. */
+.mod-chip.is-empty {
+  width: calc(var(--px) * 6);
+  background: none;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+}
+
+/* La rareza es un color de borde, no un cartel: se reconoce de reojo y no
+   le roba lugar al nombre. Común verde, raro azul, épico dorado. */
+.rarity-common { box-shadow: inset 0 0 0 1px var(--green); }
+.rarity-rare { box-shadow: inset 0 0 0 1px var(--blue); }
+.rarity-epic { box-shadow: inset 0 0 0 1px var(--gold); }
+
+/* El palo del modificador, chico, detrás del nombre. */
+.mod-suit {
+  position: relative;
+  display: block;
+  width: calc(var(--px) * 4);
+  flex: 0 0 auto;
+}
+.mod-suit .art-suit {
+  position: static;
+  width: 100%;
+  opacity: 0.95;
+  transform: none;
+}
+
+/* Cuando dispara: golpe de luz y sacudida. Es el único momento en que la
+   ficha se mueve, así que no hace falta más que eso para que se note cuál
+   de los cinco fue. */
+.mod-chip.fired {
+  animation: mod-fire 0.6s cubic-bezier(0.2, 1.6, 0.35, 1);
+  z-index: 2;
+}
+@keyframes mod-fire {
+  0% { transform: scale(1); background: var(--gold); color: var(--ink-dark); }
+  30% { transform: scale(1.22) rotate(-3deg); background: var(--gold); color: var(--ink-dark); }
+  100% { transform: scale(1); }
+}
+
+/* Ranura equipada en la antesala del ante: la misma pieza que el hueco
+   punteado, pero con su arte y su color de rareza. */
+.run-mod.is-filled {
+  border: 0;
+  gap: calc(var(--px) * 0.5);
+  padding: calc(var(--px) * 1.5);
+  background: var(--panel);
+  align-content: center;
+}
+.run-mod.is-filled .mod-suit { width: calc(var(--px) * 7); margin: 0 auto; }
+.run-mod-name {
+  display: block;
+  font-size: 0.5rem;
+  line-height: 1.15;
+  text-align: center;
+  color: var(--ink);
+  white-space: normal;
+}
+
+/* ---------- oferta de la tienda ---------- */
+
+/* Las tres fichas de la tienda son botones de verdad: la decisión de la
+   pantalla es llevarse una. Llevan el arte del palo de fondo, como las
+   fichas de modo, para que se lean como piezas del mismo juego. */
+.shop-slot {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: calc(var(--px) * 0.5);
+  padding: calc(var(--px) * 4);
+  border: 0;
+  border-radius: var(--r);
+  background: var(--panel);
+  color: var(--ink);
+  letter-spacing: 0;
+  text-align: left;
+  aspect-ratio: auto;
+  min-height: calc(var(--px) * 46);
+  transition: transform 0.14s ease, box-shadow 0.14s ease;
+}
+.shop-slot .mod-suit {
+  position: absolute;
+  right: -6%;
+  bottom: -14%;
+  width: 46%;
+  opacity: 0.2;
+  pointer-events: none;
+}
+.shop-slot:hover {
+  transform: translateY(calc(var(--px) * -0.75));
+  background: var(--panel-2);
+}
+.shop-slot[disabled] { opacity: 0.4; cursor: default; pointer-events: none; }
+
+.shop-rarity {
+  position: relative;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.shop-slot.rarity-common .shop-rarity { color: var(--green); }
+.shop-slot.rarity-rare .shop-rarity { color: var(--blue); }
+.shop-slot.rarity-epic .shop-rarity { color: var(--gold); }
+
+.shop-name {
+  position: relative;
+  font-size: 1.25rem;
+  font-weight: 800;
+  line-height: 1.1;
+  white-space: normal;
+}
+.shop-desc {
+  position: relative;
+  font-size: 0.95rem;
+  font-weight: 400;
+  line-height: 1.4;
+  color: var(--muted);
+  white-space: normal;
+}
+
+/* En angosto las tres fichas no se pueden comparar de costado: pasan a
+   columna, cada una con su texto entero. */
+@media (max-width: 720px) {
+  .shop-slots { grid-template-columns: 1fr; }
+  .shop-slot { min-height: 0; }
+}
+
 /* ---------- mazo ---------- */
 
 /* El mazo vive abajo a la derecha, fuera del camino. Clickearlo es irse al
@@ -942,7 +1302,11 @@ body::after {
 
 /* Tres dorsos apilados y corridos: el bulto hace que se lea como un mazo
    y no como una carta suelta. */
+/* El mazo también respira, un poco más lento que las cartas: quieto al lado
+   de una mesa que se mueve parecería pegado al fondo. Va en el contenedor
+   porque los tres dorsos usan su transform para apilarse. */
 .deck-pile {
+  animation: float 4200ms ease-in-out infinite;
   position: relative;
   display: block;
   width: calc(var(--card-w) * 0.52);
@@ -988,6 +1352,103 @@ body::after {
 /* Armado: el mazo se tiñe de rojo para que el segundo clic no sea a ciegas. */
 .deck.armed .deck-pile i { box-shadow: inset 0 0 0 3px var(--ink-dark), inset 0 0 0 5px var(--red), 0 3px 6px rgba(0, 0, 0, 0.45); }
 .deck.armed .deck-label { background: var(--red); color: #fff2f4; }
+
+/* ---------- reloj del turno ---------- */
+
+/* Una barra angosta sobre los botones: lo que cuenta es cuánto le queda al
+   turno, no un número más en el HUD. Vive pegada a las acciones porque es
+   ahí donde hay que decidir. */
+.turn-timer {
+  position: relative;
+  width: min(360px, 86vw);
+  height: calc(var(--px) * 3);
+  margin: 0 auto calc(var(--px) * 1.5);
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--panel);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+.turn-timer[hidden] { display: none; }
+
+.turn-timer-fill {
+  display: block;
+  height: 100%;
+  width: 100%;
+  transform-origin: left center;
+  background: var(--green);
+  /* El conteo avanza a pasos de verdad, no deslizando: así la barra */
+  /* se siente como un reloj digital y no como una carga continua. */
+  transition: transform 0.1s linear, background-color 0.3s ease;
+}
+/* En el tramo caliente, la barra deja de ser verde y pasa a arder: el
+   mismo --heat que mueve el borde de la pantalla la pinta acá. */
+.turn-timer.is-low .turn-timer-fill {
+  background: linear-gradient(90deg, var(--red), var(--gold));
+}
+
+.turn-timer-num {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 0.6rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-dark);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.25);
+  pointer-events: none;
+}
+
+/* El tramo caliente late: cada pulso es un segundo que se va. */
+.turn-timer.is-low {
+  animation: timer-pulse 0.5s ease-in-out infinite;
+}
+@keyframes timer-pulse {
+  50% { transform: scale(1.04); }
+}
+
+/* ---------- calor ---------- */
+
+/* Un borde que se prende fuego alrededor de toda la pantalla cuando el
+   reloj aprieta. --heat lo pone tickTimer(), de 0 a 1, y es lo único que
+   hace falta: el brillo, el color y la fuerza del parpadeo salen de ahí. */
+:root { --heat: 0; }
+
+#heat {
+  position: fixed;
+  inset: 0;
+  z-index: 55;
+  pointer-events: none;
+  opacity: var(--heat);
+  background:
+    radial-gradient(ellipse 140% 60% at 50% 100%, rgba(255, 110, 20, 0.55), transparent 55%),
+    radial-gradient(ellipse 140% 60% at 50% 0%, rgba(255, 70, 20, 0.4), transparent 55%),
+    linear-gradient(90deg, rgba(255, 90, 20, 0.35), transparent 12%, transparent 88%, rgba(255, 90, 20, 0.35));
+  mix-blend-mode: screen;
+  animation: heat-flicker 0.4s steps(4, end) infinite;
+}
+@keyframes heat-flicker {
+  0%, 100% { opacity: calc(var(--heat) * 0.85); }
+  50% { opacity: var(--heat); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .turn-timer.is-low { animation: none; }
+  #heat { animation: none; }
+}
+:root[data-fx="off"] .turn-timer.is-low { animation: none; }
+:root[data-fx="off"] #heat { animation: none; opacity: 0; }
+
+/* ---------- interruptor del reloj en las pantallas previas ---------- */
+
+/* El mismo "setting" del menú, suelto en medio de la antesala del ante o
+   de la elección de largo: no tiene la fila de otras opciones alrededor,
+   así que necesita su propio margen. */
+.setting-timer {
+  justify-content: center;
+  gap: calc(var(--px) * 3);
+  margin: calc(var(--px) * 4) 0;
+}
 
 /* ---------- acciones ---------- */
 .actions {
@@ -1062,7 +1523,7 @@ button.bad:hover { background: #5e374b; }
   padding: calc(var(--px) * 2.5) calc(var(--px) * 5);
   border-radius: 999px;
   border: 3px solid var(--ink-dark);
-  font-size: clamp(1.1rem, 2.4vw, 1.6rem);
+  font-size: calc(clamp(1.1rem, 2.4vw, 1.6rem) * var(--bubble-scale, 1));
   font-weight: 800;
   white-space: nowrap;
   color: var(--ink-dark);
@@ -1145,7 +1606,11 @@ button.bad:hover { background: #5e374b; }
 }
 
 /* ---------- overlay ---------- */
+/* El velo aparece con un fundido y se va con otro: sin esto, salir del
+   cartel a la mesa es un parpadeo. Mientras se va no recibe clics, porque
+   la partida de atrás ya está andando. */
 .overlay {
+  animation: veil-in 0.22s ease-out;
   position: fixed;
   inset: 0;
   display: grid;
@@ -1154,13 +1619,27 @@ button.bad:hover { background: #5e374b; }
   z-index: 60;
 }
 .overlay[hidden] { display: none; }
+.overlay.is-closing {
+  animation: veil-out 0.22s ease-in forwards;
+  pointer-events: none;
+}
+@keyframes veil-in { from { opacity: 0; } }
+@keyframes veil-out { to { opacity: 0; } }
 .overlay-card {
   text-align: center;
   padding: calc(var(--px) * 8) calc(var(--px) * 10);
   border-radius: var(--r);
   background: var(--panel);
   box-shadow: inset 0 0 0 var(--px) var(--line);
-  animation: deal 0.3s steps(5, end);
+}
+
+/* Cada cara del cartel entra sola, de abajo y creciendo apenas: pasar del
+   ante a la tienda deja de ser un corte y pasa a ser un cambio de escena.
+   La clase se vuelve a poner en cada cambio para que la animación se
+   dispare de nuevo. */
+.screen-in { animation: screen-in 0.26s cubic-bezier(0.2, 0.9, 0.3, 1); }
+@keyframes screen-in {
+  from { opacity: 0; transform: translateY(calc(var(--px) * 4)) scale(0.97); }
 }
 .overlay-card h1 {
   margin: 0 0 calc(var(--px) * 2);
@@ -1178,9 +1657,18 @@ button.bad:hover { background: #5e374b; }
   font-size: 1.1rem;
 }
 
+/* Efectos reducidos. Vale para quien lo pide desde el sistema y para
+   quien lo apaga desde el menú: el atributo lo pone la capa de efectos, y
+   acá se corta todo lo que se mueve de un lado. Las cartas, los carteles y
+   los números siguen estando; lo que se va es el movimiento. */
 @media (prefers-reduced-motion: reduce) {
   *, *::before { animation: none !important; transition: none !important; }
+}
 
+:root[data-fx="off"] *,
+:root[data-fx="off"] *::before {
+  animation: none !important;
+  transition: none !important;
 }
 
 @media (max-width: 560px) {
