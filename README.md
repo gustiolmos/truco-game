@@ -9,6 +9,9 @@ node test/selfplay.mjs
 
 ## Arquitectura
 
+Los assets están en `assets/` con su licencia al lado: fuente Silkscreen (OFL)
+y sonidos de Kenney (CC0). Todo local, para que el juego ande offline.
+
 El motor no conoce el DOM. Recibe acciones, valida y emite eventos; la UI se
 suscribe y los traduce en efectos. Eso permite testear reglas sin navegador y,
 más adelante, correr el mismo motor en un servidor para multijugador.
@@ -23,6 +26,7 @@ más adelante, correr el mismo motor en un servidor para multijugador.
 | `src/ui/sprites.js` | palos (24x24) y figuras (32x44), dibujados a mano |
 | `src/ui/card.js` | carta en DOM: marco, palos repartidos o figura, inclinación 3D |
 | `src/ui/fx.js` | partículas, sacudida de pantalla, carteles de canto |
+| `src/ui/audio.js` | bus de Web Audio: variantes por gesto, silencio persistente |
 | `src/main.js` | pegamento: eventos → efectos, clics → acciones |
 
 ## Reglas implementadas
