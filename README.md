@@ -20,7 +20,7 @@ más adelante, correr el mismo motor en un servidor para multijugador.
 | `src/core/game.js` | máquina de estados de la ronda y el puntaje |
 | `src/core/ai.js` | rival heurístico (fuerza de mano + ruido para mentir) |
 | `src/ui/pixel.js` | renderer de sprites: grilla de caracteres → SVG pixelado |
-| `src/ui/sprites.js` | palos (24x24) y figuras (24x30), dibujados a mano |
+| `src/ui/sprites.js` | palos (24x24) y figuras (32x44), dibujados a mano |
 | `src/ui/card.js` | carta en DOM: marco, palos repartidos o figura, inclinación 3D |
 | `src/ui/fx.js` | partículas, sacudida de pantalla, carteles de canto |
 | `src/main.js` | pegamento: eventos → efectos, clics → acciones |
