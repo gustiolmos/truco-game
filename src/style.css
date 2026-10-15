@@ -698,17 +698,14 @@ body::after {
 .modes {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  grid-auto-rows: minmax(92px, auto);
+  grid-auto-rows: minmax(172px, 1fr);
   gap: calc(var(--px) * 2);
   margin: calc(var(--px) * 5) 0 calc(var(--px) * 3);
 }
-/* Posiciones explícitas y no "span": dejando que la grilla acomode sola,
-   las piezas altas abren huecos. Queda Historia grande a la izquierda,
-   dos chicas apiladas al medio, Online de columna alta a la derecha, y lo
-   jugable a lo ancho abajo. */
+/* Historia ocupa el cuadrante izquierdo entero y las otras cuatro se
+   acomodan solas en el bloque de dos por dos de la derecha. Sin piezas de
+   tamaños raros no quedan huecos. */
 .mode-big { grid-column: 1 / 3; grid-row: 1 / 3; }
-.mode-tall { grid-column: 4; grid-row: 1 / 3; }
-.mode-wide { grid-column: 1 / -1; }
 
 .mode {
   position: relative;
@@ -718,7 +715,7 @@ body::after {
   justify-content: flex-end;
   align-items: stretch;
   padding: 0;
-  min-height: 92px;
+  min-height: 172px;
   border-radius: var(--r);
   background: var(--panel);
   box-shadow: inset 0 0 0 1px var(--line);
@@ -751,7 +748,6 @@ body::after {
   transition: transform 0.25s ease, opacity 0.25s ease;
 }
 .mode-big .art-suit { width: 48%; right: 4%; bottom: -14%; }
-.mode-wide .art-suit { width: 16%; right: 3%; bottom: -26%; }
 
 /* El texto va sobre un velo oscuro, no sobre el arte pelado: si no, el
    nombre se pierde justo encima del palo. */
@@ -760,19 +756,18 @@ body::after {
   display: flex;
   flex-direction: column;
   gap: calc(var(--px) * 0.5);
-  padding: calc(var(--px) * 3);
-  background: linear-gradient(0deg, rgba(8, 20, 16, 0.88), transparent);
+  padding: calc(var(--px) * 4);
+  background: linear-gradient(0deg, rgba(8, 20, 16, 0.92) 35%, transparent);
 }
 .mode-name {
-  font-size: 1rem;
+  font-size: 1.1rem;
   font-weight: 800;
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }
-.mode-big .mode-name { font-size: 1.7rem; }
-.mode-wide .mode-name { font-size: 1.25rem; }
+.mode-big .mode-name { font-size: 2rem; }
 .mode-desc {
-  font-size: 0.76rem;
+  font-size: 0.8rem;
   font-weight: 400;
   color: var(--muted);
   line-height: 1.3;
@@ -827,8 +822,7 @@ body::after {
 
 @media (max-width: 720px) {
   .modes { grid-template-columns: repeat(2, 1fr); }
-  .mode-big { grid-column: 1 / -1; grid-row: auto; min-height: 180px; }
-  .mode-tall { grid-column: auto; grid-row: auto; }
+  .mode-big { grid-column: 1 / -1; grid-row: auto; min-height: 200px; }
   .modes-card h1 { letter-spacing: 0.12em; }
   .modes-card h1::before, .modes-card h1::after { max-width: 40px; }
 }
