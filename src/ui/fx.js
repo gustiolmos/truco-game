@@ -74,14 +74,36 @@ export class Fx {
     setTimeout(() => node.remove(), 1100);
   }
 
-  // Cartel de canto que entra golpeando.
-  shout(text, { tone = 'truco' } = {}) {
-    const el = document.createElement('div');
-    el.className = `shout shout-${tone}`;
-    el.textContent = text;
-    this.stage.appendChild(el);
-    this.kick(tone === 'truco' ? 16 : 10);
-    setTimeout(() => el.remove(), 1400);
+  // Globo de diálogo saliendo de un jugador. `dir` dice hacia dónde apunta
+  // la cola: 'down' para el de abajo (habla hacia arriba), 'up' para el de
+  // arriba. Cada boca tiene un solo globo: si llega otro, reemplaza al
+  // anterior en vez de encimarse.
+  bubble(text, { from, dir = 'down', tone = 'truco', hold = 1500 } = {}) {
+    if (!from) return;
+    const key = dir;
+    this.bubbles ??= new Map();
+    this.bubbles.get(key)?.remove();
+
+    const base = this.stage.getBoundingClientRect();
+    const r = from.getBoundingClientRect();
+
+    const node = document.createElement('div');
+    node.className = `bubble bubble-${tone} bubble-${dir}`;
+    node.textContent = text;
+    node.style.left = `${r.left - base.left + r.width / 2}px`;
+    node.style.top = dir === 'down'
+      ? `${r.top - base.top - 14}px`        // habla el de abajo: globo arriba suyo
+      : `${r.bottom - base.top + 14}px`;    // habla el de arriba: globo debajo
+    node.style.setProperty('--hold', `${hold}ms`);
+
+    this.stage.appendChild(node);
+    this.bubbles.set(key, node);
+    const timer = setTimeout(() => {
+      node.remove();
+      if (this.bubbles.get(key) === node) this.bubbles.delete(key);
+    }, hold);
+    node.addEventListener('remove', () => clearTimeout(timer));
+    return node;
   }
 
   tick = () => {

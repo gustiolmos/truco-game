@@ -78,3 +78,24 @@ function attachTilt(el) {
   el.addEventListener('pointermove', onMove);
   el.addEventListener('pointerleave', reset);
 }
+
+// Grietas sobre la carta que perdió la mano. Son trazos sueltos que se
+// dibujan solos: marcan el quiebre sin romper la carta ni taparla, que es
+// lo que pasaría con una animación de pedazos cayendo.
+const CRACK = [
+  'M50 0 L44 38 L59 64 L41 96 L54 126 L47 155',   // el quiebre principal
+  'M44 38 L14 50',
+  'M59 64 L92 52',
+  'M41 96 L10 114',
+  'M54 126 L88 140',
+];
+
+export function crack(cardEl) {
+  if (!cardEl || cardEl.querySelector('.crack')) return;
+  const face = cardEl.querySelector('.card-face') ?? cardEl;
+  const paths = CRACK.map((d, i) => `
+    <path class="crack-dark" d="${d}" style="--delay:${i * 55}ms"/>
+    <path class="crack-light" d="${d}" style="--delay:${i * 55}ms"/>`).join('');
+  face.insertAdjacentHTML('beforeend',
+    `<svg class="crack" viewBox="0 0 100 155" preserveAspectRatio="none" aria-hidden="true">${paths}</svg>`);
+}

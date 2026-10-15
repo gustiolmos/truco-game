@@ -4,7 +4,7 @@
 import { TrucoGame, TRUCO_CHAIN, HUMAN, CPU } from './core/game.js';
 import { chooseAction } from './core/ai.js';
 import { ENVIDO_CALLS } from './core/envido.js';
-import { renderCard } from './ui/card.js';
+import { renderCard, crack } from './ui/card.js';
 import { Fx, countUp } from './ui/fx.js';
 import { audio, armAudio } from './ui/audio.js';
 import { t, callLabel, locales, getLocale, setLocale, onLocaleChange } from './i18n/index.js';
@@ -207,6 +207,14 @@ function renderActions(legal) {
 
 function say(text) { el.log.textContent = text; }
 
+// De qué boca sale cada globo. El de abajo habla hacia arriba y el de
+// arriba hacia abajo, para que la cola apunte siempre al que habla.
+const mouth = (player) => (player === HUMAN
+  ? { from: el.handHuman, dir: 'down' }
+  : { from: el.handCpu, dir: 'up' });
+
+const other = (player) => (player === HUMAN ? CPU : HUMAN);
+
 // ---- eventos del motor -> efectos -------------------------------------
 
 function onEvent(e) {
@@ -228,9 +236,14 @@ function onEvent(e) {
     }
     case 'trick-end': {
       if (e.result === 'parda') { say(t('log.parda')); audio.play('reject', { volume: 0.6 }); break; }
+      // Ganadora y perdedora marcadas a la vez: con una sola no se entiende
+      // cuál de las dos cartas mandó.
       const slot = TRICK_SLOT[e.result];
+      const loserSlot = TRICK_SLOT[other(e.result)];
       slot.firstElementChild?.classList.add('winner');
-      fx.burstAt(slot, { count: 26, hue: e.result === HUMAN ? 120 : 350, power: 6 });
+      loserSlot.firstElementChild?.classList.add('loser');
+      crack(loserSlot.firstElementChild);
+      fx.burstAt(slot, { count: 26, hue: 45, power: 6 });
       fx.kick(e.result === HUMAN ? 9 : 6);
       audio.play(e.result === HUMAN ? 'trickWin' : 'trickLose');
       say(e.result === HUMAN ? t('log.youWinTrick') : t('log.rivalWinsTrick'));
@@ -238,30 +251,39 @@ function onEvent(e) {
     }
     case 'call': {
       const label = callLabel(e.call);
-      fx.shout(label + '!', { tone: e.kind });
+      fx.bubble(`¡${label}!`, { ...mouth(e.player), tone: e.kind });
+      fx.kick(e.kind === 'truco' ? 14 : 9);
       audio.play(e.kind === 'truco' ? 'truco' : 'envido');
       say(e.player === HUMAN ? t('log.youCall', label) : t('log.rivalCalls', label));
       break;
     }
     case 'truco-accepted':
       say(t('log.accepted'));
+      fx.bubble(t('action.accept'), { ...mouth(e.player), tone: 'good' });
       fx.kick(8);
       audio.play('accept');
       break;
     case 'truco-rejected':
-      fx.shout(t('shout.reject'), { tone: e.winner === HUMAN ? 'good' : 'bad' });
+      fx.bubble(t('action.reject'), { ...mouth(other(e.winner)), tone: 'bad' });
       audio.play('reject');
       break;
     case 'envido-showdown': {
       const mine = e.points[HUMAN];
       const theirs = e.points[CPU];
-      fx.shout(t('shout.envidoBetter', e.winner === HUMAN ? mine : theirs),
-        { tone: e.winner === HUMAN ? 'good' : 'bad' });
-      audio.play(e.winner === HUMAN ? 'trickWin' : 'trickLose');
+      // Primero el "quiero" de quien aceptó, y recién después el número
+      // ganador: encimados no se entiende quién dijo qué.
+      fx.bubble(t('action.accept'), { ...mouth(e.player), tone: 'good', hold: 900 });
+      audio.play('accept');
+      setTimeout(() => {
+        fx.bubble(t('shout.envidoBetter', e.winner === HUMAN ? mine : theirs),
+          { ...mouth(e.winner), tone: 'gold' });
+        audio.play(e.winner === HUMAN ? 'trickWin' : 'trickLose');
+      }, 520);
       say(t('log.envidoScore', mine, theirs));
       break;
     }
     case 'envido-rejected':
+      fx.bubble(t('action.reject'), { ...mouth(other(e.winner)), tone: 'bad' });
       audio.play('reject');
       say(t('log.envidoRejected', e.value, e.winner === HUMAN));
       break;

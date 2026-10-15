@@ -158,7 +158,9 @@ export class TrucoGame {
       const pts = [this.envidoPointsOf(0), this.envidoPointsOf(1)];
       const w = pts[0] === pts[1] ? this.mano : (pts[0] > pts[1] ? 0 : 1);
       this.envidoDone = true;
-      this.emit('envido-showdown', { points: pts, winner: w, value: accept });
+      // Va quién aceptó, además de quién ganó: la UI necesita saber de qué
+      // boca sale el "quiero".
+      this.emit('envido-showdown', { player, points: pts, winner: w, value: accept });
       this.addScore(w, accept);
     } else {
       this.trucoAccepted = true;

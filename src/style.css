@@ -476,10 +476,69 @@ body::after {
   filter: grayscale(1) brightness(0.55);
   pointer-events: none;
 }
-.card.winner .card-inner { animation: glow 0.6s steps(4, end); }
-@keyframes glow {
-  0%, 100% { background: var(--ink-dark); }
-  50% { background: var(--green); transform: scale(1.06); }
+/* La que ganó la mano: halo dorado y un salto corto. El mismo recurso que
+   el hover, que ya se entiende como "esta carta está señalada", pero en
+   dorado y más fuerte, para que se lea como premio. */
+.card.winner { z-index: 15; }
+.card.winner .card-inner {
+  animation: win-glow 0.75s ease-out;
+}
+@keyframes win-glow {
+  0%   { box-shadow: none; transform: scale(1); }
+  28%  {
+    box-shadow:
+      0 0 0 4px var(--gold),
+      0 0 26px 8px rgba(255, 194, 51, 0.85),
+      0 0 60px 18px rgba(255, 194, 51, 0.35);
+    transform: scale(1.09);
+  }
+  100% {
+    box-shadow:
+      0 0 0 2px rgba(255, 194, 51, 0.6),
+      0 0 18px 4px rgba(255, 194, 51, 0.25);
+    transform: scale(1.02);
+  }
+}
+/* El halo se queda puesto hasta que se levantan las cartas, así se ve cuál
+   ganó aunque te hayas perdido la animación. */
+.card.winner .card-inner {
+  box-shadow:
+    0 0 0 2px rgba(255, 194, 51, 0.6),
+    0 0 18px 4px rgba(255, 194, 51, 0.25);
+}
+
+/* La que perdió: se agrieta y se apaga un poco. Sin pedazos cayendo: la
+   carta tiene que seguir leyéndose. */
+.card.loser .card-inner {
+  filter:
+    drop-shadow(3px 4px 0 rgba(0, 0, 0, 0.28))
+    drop-shadow(2px 6px 7px rgba(0, 0, 0, 0.45))
+    saturate(0.55) brightness(0.82);
+  transform: rotate(-1.5deg) translateY(3px);
+  transition: filter 0.4s ease, transform 0.4s ease;
+}
+.crack {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: visible;
+}
+.crack path {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  /* 400 sobra para el trazo más largo; de lo que sobre no se ve nada. */
+  stroke-dasharray: 400;
+  stroke-dashoffset: 400;
+  animation: crack-draw 0.26s ease-out forwards;
+  animation-delay: var(--delay, 0ms);
+}
+.crack-dark { stroke: rgba(20, 12, 10, 0.75); stroke-width: 4; }
+.crack-light { stroke: rgba(255, 255, 255, 0.8); stroke-width: 1.5; }
+@keyframes crack-draw {
+  to { stroke-dashoffset: 0; }
 }
 
 /* ---------- acciones ---------- */
@@ -533,6 +592,71 @@ button.bad:hover { background: #5e374b; }
   max-width: 90%;
 }
 
+/* ---------- globos de diálogo ---------- */
+
+/* Lo que dice cada jugador sale de su boca, no de un cartel en el medio de
+   la pantalla: así se ve QUIÉN cantó sin leer el registro de abajo.
+   Entra de golpe, pasado de tamaño y torcido, y se endereza: rápido y
+   bruto, como un grito. */
+.bubble {
+  position: absolute;
+  z-index: 46;
+  pointer-events: none;
+  padding: calc(var(--px) * 2.5) calc(var(--px) * 5);
+  border-radius: 999px;
+  border: 3px solid var(--ink-dark);
+  font-size: clamp(1.1rem, 2.4vw, 1.6rem);
+  font-weight: 800;
+  white-space: nowrap;
+  color: var(--ink-dark);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.45);
+  animation: bubble-in 0.26s cubic-bezier(0.15, 1.9, 0.4, 1) backwards,
+             bubble-out 0.18s ease-in forwards;
+  animation-delay: 0s, var(--hold, 1500ms);
+}
+
+/* La cola, hecha con dos triángulos: el oscuro hace de borde y el claro
+   tapa el centro, así el contorno sigue cerrado alrededor del pico. */
+.bubble::before,
+.bubble::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  border: 11px solid transparent;
+}
+.bubble::before { margin-left: -11px; }
+.bubble::after { margin-left: -8px; border-width: 8px; }
+
+.bubble-down { transform: translate(-50%, -100%); }
+.bubble-down::before { top: 100%; border-top-color: var(--ink-dark); }
+.bubble-down::after { top: calc(100% - 4px); border-top-color: inherit; }
+
+.bubble-up { transform: translate(-50%, 0); }
+.bubble-up::before { bottom: 100%; border-bottom-color: var(--ink-dark); }
+.bubble-up::after { bottom: calc(100% - 4px); border-bottom-color: inherit; }
+
+/* Cada decisión con su color: el truco pega, el envido es frío, aceptar es
+   verde y no querer se apaga. */
+.bubble-truco  { background: var(--red); border-color: #7d0f24; }
+.bubble-truco::after  { color: var(--red); }
+.bubble-envido { background: var(--blue); border-color: #11467d; }
+.bubble-envido::after { color: var(--blue); }
+.bubble-good   { background: var(--green); border-color: #0f6b2c; }
+.bubble-good::after   { color: var(--green); }
+.bubble-bad    { background: #6d7f86; border-color: #2c3a40; color: #f2f7f4; }
+.bubble-bad::after    { color: #6d7f86; }
+.bubble-gold   { background: var(--gold); border-color: #8a5f00; }
+.bubble-gold::after   { color: var(--gold); }
+
+@keyframes bubble-in {
+  0%   { opacity: 0; scale: 0.35; rotate: -10deg; }
+  55%  { opacity: 1; scale: 1.14; rotate: 3deg; }
+  100% { opacity: 1; scale: 1; rotate: 0deg; }
+}
+@keyframes bubble-out {
+  to { opacity: 0; scale: 0.9; }
+}
+
 /* ---------- cartel de puntos ---------- */
 
 /* El "+3" que salta sobre la mesa al sumar. Entra pasándose de tamaño y
@@ -561,38 +685,6 @@ button.bad:hover { background: #5e374b; }
   36%  { opacity: 1; transform: translate(-50%, -50%) scale(1); }
   70%  { opacity: 1; transform: translate(-50%, -110%) scale(1); }
   100% { opacity: 0; transform: translate(-50%, -200%) scale(0.92); }
-}
-
-/* ---------- carteles de canto ---------- */
-.shout {
-  position: absolute;
-  top: 38%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: clamp(1.6rem, 6vw, 3.6rem);
-  font-weight: 700;
-  text-transform: uppercase;
-  z-index: 40;
-  pointer-events: none;
-  /* Entra a los golpes, en pasos: pega más que un ease suave. */
-  animation: slam 1.3s steps(8, end) forwards;
-  /* Contorno pixel hecho a mano con cuatro sombras duras. */
-  text-shadow:
-    var(--px) 0 0 var(--ink-dark),
-    calc(var(--px) * -1) 0 0 var(--ink-dark),
-    0 var(--px) 0 var(--ink-dark),
-    0 calc(var(--px) * -1) 0 var(--ink-dark),
-    calc(var(--px) * 2) calc(var(--px) * 2) 0 rgba(0, 0, 0, 0.5);
-}
-.shout-truco { color: var(--red); }
-.shout-envido { color: var(--blue); }
-.shout-good { color: var(--green); }
-.shout-bad { color: var(--red); }
-@keyframes slam {
-  0% { opacity: 0; transform: translate(-50%, -50%) scale(2.4); }
-  20% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-  76% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-  100% { opacity: 0; transform: translate(-50%, -62%) scale(1); }
 }
 
 /* ---------- overlay ---------- */
