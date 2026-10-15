@@ -15,19 +15,20 @@
   /* Paleta corta a propósito: un pixelart con 40 colores se ve sucio.
      Pero corta no quiere decir apagada: los acentos van saturados a fondo,
      y el contraste lo da el fondo oscuro, no bajarles el brillo. */
-  --bg: #1b1040;
-  --bg-2: #2d1a66;
-  --ink: #fff6e4;
-  --ink-dark: #140f22;
-  --muted: #a99ae0;
-  --line: #4a349c;
+  --bg: #2f7259;
+  --bg-2: #1e4d3d;
+  --ink: #f2f7f4;
+  --ink-dark: #121a18;
+  --muted: #a7c2b7;
+  --line: #2d5a4b;
+  --panel: #17302a;
+  --panel-2: #24463c;
   --gold: #ffc233;
   --red: #ff3b5c;
   --blue: #3aa0ff;
   --green: #35d35f;
   --card-face: #fffaf0;
-  --felt: #1d6b4a;        /* paño */
-  --felt-dark: #0d3b29;
+
 
   /* La carta mide 1,55 de alto por 1 de ancho, así que si sólo se atara al
      ancho, en una ventana baja se comería la mesa. Manda el lado que
@@ -59,13 +60,24 @@ body::before {
   content: '';
   position: fixed;
   inset: 0;
+  /* El paño ocupa toda la pantalla, no un rectángulo con marco. La textura
+     es ruido fractal en SVG incrustado: marmola el verde sin pedir ningún
+     archivo y se ve bien a cualquier resolución. */
   background:
-    /* Viñeta: oscurece las esquinas para que la mesa quede en el centro de
-       atención. Sin esto el fondo es una pared pareja y todo se ve plano. */
-    radial-gradient(130% 110% at 50% 45%, transparent 38%, rgba(0, 0, 0, 0.55) 100%),
-    radial-gradient(64% 58% at 50% 34%, #4a2aa8 0%, transparent 72%),
-    linear-gradient(170deg, var(--bg), var(--bg-2));
+    radial-gradient(ellipse 90% 70% at 50% 8%, rgba(255, 255, 255, 0.10), transparent 70%),
+    linear-gradient(185deg, var(--bg) 0%, var(--bg-2) 100%);
   z-index: -2;
+}
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='700' height='700'%3E%3Cfilter id='m'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.009' numOctaves='4' seed='11'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='700' height='700' filter='url(%23m)'/%3E%3C/svg%3E");
+  background-size: 700px 700px;
+  opacity: 0.16;
+  mix-blend-mode: overlay;
 }
 
 #fx {
@@ -100,7 +112,7 @@ body::before {
   padding: calc(var(--px) * 2.5) calc(var(--px) * 4);
   width: fit-content;
   border-radius: var(--r);
-  background: #2a1a5e;
+  background: var(--panel);
   box-shadow: inset 0 0 0 var(--px) var(--line);
 }
 .hud-right {
@@ -132,7 +144,7 @@ body::before {
   gap: calc(var(--px) * 2);
   padding: calc(var(--px) * 2.5) calc(var(--px) * 4);
   border-radius: var(--r);
-  background: #2a1a5e;
+  background: var(--panel);
   box-shadow: inset 0 0 0 var(--px) var(--blue);
 }
 .envido-num {
@@ -181,7 +193,7 @@ body::before {
   width: calc(var(--px) * 3);
   height: calc(var(--px) * 3);
   border-radius: 50%;
-  background: #3d2a7a;
+  background: var(--panel-2);
   box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.45);
 }
 .tricks i.w { background: var(--green); }
@@ -193,11 +205,11 @@ body::before {
   font-size: 1.3rem;
   line-height: 1;
   padding: calc(var(--px) * 2) calc(var(--px) * 3);
-  background: #2a1a5e;
+  background: var(--panel);
   color: var(--muted);
   box-shadow: inset 0 0 0 1px var(--line);
 }
-.menu-btn:hover { background: #3d2a7a; color: var(--ink); }
+.menu-btn:hover { background: var(--panel-2); color: var(--ink); }
 
 /* Banderas: botones chicos, el elegido con borde dorado y a tamaño completo.
    Los otros van apagados para que se note cuál está activo sin leer. */
@@ -206,13 +218,13 @@ body::before {
   padding: calc(var(--px) * 1.25);
   border-radius: var(--r-sm);
   overflow: hidden;
-  background: #2a1a5e;
+  background: var(--panel);
   box-shadow: inset 0 0 0 1px var(--line);
   line-height: 0;
   opacity: 0.5;
   filter: saturate(0.5);
 }
-.lang:hover { opacity: 1; filter: none; background: #3d2a7a; transform: none; }
+.lang:hover { opacity: 1; filter: none; background: var(--panel-2); transform: none; }
 .lang.is-on {
   opacity: 1;
   filter: none;
@@ -255,8 +267,8 @@ body::before {
   color: #06230f;
 }
 .toggle:hover { background: #4ade68; }
-.toggle.is-off { background: #3b2a66; color: var(--muted); }
-.toggle.is-off:hover { background: #4a3580; }
+.toggle.is-off { background: var(--panel); color: var(--muted); }
+.toggle.is-off:hover { background: var(--panel-2); }
 
 /* El accent-color alcanza para que el control nativo entre en la paleta,
    sin reimplementar la barra a mano en cada navegador. */
@@ -288,39 +300,10 @@ body::before {
   gap: clamp(6px, 1.5vw, 16px);
   perspective: 1100px;
 }
-/* La mesa: un paño con volumen, no un rectángulo de color.
-   El relieve sale de cuatro capas que hacen cosas distintas:
-   un foco de luz arriba, la trama del tejido, la viñeta que hunde los
-   bordes, y un filo claro arriba con sombra abajo que da el canto. */
+/* La mesa no es un objeto con marco: el paño ya es todo el fondo, así que
+   esto es apenas la fila donde caen las cartas. */
 .table {
-  position: relative;
   gap: clamp(12px, 4vw, 44px);
-  margin: 0 clamp(4px, 2vw, 40px);
-  border-radius: calc(var(--r) * 2);
-  background:
-    radial-gradient(ellipse 70% 60% at 50% 22%,
-      rgba(255, 255, 255, 0.13), transparent 70%),
-    repeating-linear-gradient(45deg,
-      rgba(0, 0, 0, 0.05) 0 2px, transparent 2px 4px),
-    repeating-linear-gradient(-45deg,
-      rgba(255, 255, 255, 0.035) 0 2px, transparent 2px 4px),
-    linear-gradient(175deg, var(--felt), var(--felt-dark));
-  box-shadow:
-    inset 0 2px 0 rgba(255, 255, 255, 0.18),     /* filo de arriba, iluminado */
-    inset 0 -3px 0 rgba(0, 0, 0, 0.35),          /* filo de abajo, en sombra */
-    inset 0 0 90px 20px rgba(0, 0, 0, 0.4),      /* viñeta: hunde los bordes */
-    0 14px 34px rgba(0, 0, 0, 0.45),             /* la mesa se despega del fondo */
-    0 2px 0 rgba(255, 255, 255, 0.06);
-}
-
-/* Reborde interno: el canto del paño contra el marco de la mesa. */
-.table::after {
-  content: '';
-  position: absolute;
-  inset: calc(var(--px) * 2);
-  border-radius: var(--r);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  pointer-events: none;
 }
 
 .slot {
@@ -331,18 +314,16 @@ body::before {
   place-items: center;
 }
 
-/* Hueco marcado donde cae la carta. Vacío, la mesa no decía dónde se juega. */
+/* Hueco donde cae la carta: un panel apenas más claro que el paño, siempre
+   visible. Marca el lugar sin pedir atención. */
 .slot::before {
   content: '';
   position: absolute;
   inset: 0;
   border-radius: var(--r);
-  border: 2px dashed rgba(255, 255, 255, 0.12);
-  background: rgba(0, 0, 0, 0.14);
-  transition: opacity 0.25s ease;
+  background: rgba(255, 255, 255, 0.07);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
-/* Con una carta encima, el hueco sobra. */
-.slot:not(:empty)::before { opacity: 0; }
 
 .card {
   width: var(--card-w);
@@ -362,8 +343,8 @@ body::before {
   background: var(--ink-dark);          /* hace de contorno de la carta */
   padding: var(--px);
   filter:
-    drop-shadow(0 2px 2px rgba(0, 0, 0, 0.35))
-    drop-shadow(0 8px 14px rgba(0, 0, 0, 0.45));
+    drop-shadow(3px 4px 0 rgba(0, 0, 0, 0.28))
+    drop-shadow(2px 6px 7px rgba(0, 0, 0, 0.45));
   transform-style: preserve-3d;
   transition: transform 0.12s steps(3, end);
 }
@@ -454,7 +435,7 @@ body::before {
 .card-back {
   background:
     repeating-conic-gradient(from 0deg at 50% 50%,
-      #6248c4 0% 25%, #4a349c 0% 50%)
+      #2b5f8a 0% 25%, #1d4463 0% 50%)
       0 0 / calc(var(--px) * 2) calc(var(--px) * 2);
   box-shadow:
     inset 0 0 0 var(--px) var(--ink-dark),
@@ -462,10 +443,22 @@ body::before {
   padding: 0;
 }
 
-/* mano propia: interactiva */
-.hand-human .card { cursor: pointer; }
-/* El hover salta de a un píxel entero: nada de translateY(-2px). */
-.hand-human .card:hover { transform: translateY(calc(var(--px) * -2)); }
+/* La mano propia va en abanico y superpuesta, como cartas agarradas con la
+   mano, no alineadas como fichas. --rot y --lift los calcula main.js según
+   la posición de cada carta, porque la mano se achica al ir jugando. */
+.hand-human { gap: 0; }
+.hand-human .card {
+  cursor: pointer;
+  margin: 0 calc(var(--card-w) * -0.17);
+  transform-origin: 50% 115%;        /* gira desde la muñeca, no del centro */
+  transform: rotate(var(--rot, 0deg)) translateY(var(--lift, 0px));
+  transition: transform 0.16s ease-out;
+}
+/* La carta señalada sale del abanico, se endereza y se pone adelante. */
+.hand-human .card:hover {
+  transform: rotate(0deg) translateY(calc(var(--card-w) * -0.16)) scale(1.06);
+  z-index: 20;
+}
 .hand-human .card:hover .card-inner { background: var(--gold); }
 .hand-human .card.disabled {
   filter: grayscale(1) brightness(0.55);
@@ -497,7 +490,7 @@ button {
   padding: calc(var(--px) * 3.5) calc(var(--px) * 7);
   border: 0;
   border-radius: var(--r-sm);
-  background: #4a349c;
+  background: var(--panel-2);
   color: var(--ink);
   cursor: pointer;
   box-shadow:
@@ -505,7 +498,7 @@ button {
     inset 0 var(--px) 0 rgba(255, 255, 255, 0.12);
   transition: transform 0.06s steps(2, end), background 0.1s steps(2, end);
 }
-button:hover { background: #6248c4; transform: translateY(calc(var(--px) * -1)); }
+button:hover { background: #31604f; transform: translateY(calc(var(--px) * -1)); }
 button:active { transform: translateY(var(--px)); }
 button:focus-visible { outline: var(--px) solid var(--gold); outline-offset: var(--px); }
 
@@ -526,6 +519,36 @@ button.bad:hover { background: #5e374b; }
   text-align: center;
   pointer-events: none;
   max-width: 90%;
+}
+
+/* ---------- cartel de puntos ---------- */
+
+/* El "+3" que salta sobre la mesa al sumar. Entra pasándose de tamaño y
+   después se asienta: ese rebote es lo que lo hace sentir un premio y no
+   un aviso. */
+.pop {
+  position: absolute;
+  z-index: 45;
+  pointer-events: none;
+  font-size: clamp(1.9rem, 4.6vw, 3.2rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  animation: pop-float 1.05s cubic-bezier(0.2, 1.5, 0.35, 1) forwards;
+  /* Contorno oscuro: sin esto el número se pierde contra el paño. */
+  text-shadow:
+    2px 0 0 rgba(0, 0, 0, 0.85), -2px 0 0 rgba(0, 0, 0, 0.85),
+    0 2px 0 rgba(0, 0, 0, 0.85), 0 -2px 0 rgba(0, 0, 0, 0.85),
+    0 6px 12px rgba(0, 0, 0, 0.5);
+}
+.pop-good { color: var(--gold); }
+.pop-bad { color: #ff8da0; }
+
+@keyframes pop-float {
+  0%   { opacity: 0; transform: translate(-50%, -50%) scale(0.3); }
+  20%  { opacity: 1; transform: translate(-50%, -50%) scale(1.3); }
+  36%  { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  70%  { opacity: 1; transform: translate(-50%, -110%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -200%) scale(0.92); }
 }
 
 /* ---------- carteles de canto ---------- */
@@ -574,7 +597,7 @@ button.bad:hover { background: #5e374b; }
   text-align: center;
   padding: calc(var(--px) * 8) calc(var(--px) * 10);
   border-radius: var(--r);
-  background: #2a1a5e;
+  background: var(--panel);
   box-shadow: inset 0 0 0 var(--px) var(--line);
   animation: deal 0.3s steps(5, end);
 }

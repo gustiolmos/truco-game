@@ -16,7 +16,7 @@ const el = {
   handHuman: $('hand-human'), handCpu: $('hand-cpu'),
   slotHuman: $('slot-human'), slotCpu: $('slot-cpu'),
   numHuman: $('num-human'), numCpu: $('num-cpu'),
-  pot: $('pot'), tricks: $('tricks'),
+  pot: $('pot'), tricks: $('tricks'), table: $('table'),
   envido: $('envido'), envidoNum: $('envido-num'),
   whoRival: $('who-rival'), whoYou: $('who-you'), whoEnvido: $('who-envido'),
   langsOverlay: $('langs-overlay'), langsMenu: $('langs-menu'),
@@ -61,10 +61,24 @@ function startRoundUI() {
   if (game.turn === CPU) queueCpu();
 }
 
+// Abanico de la mano: cada carta se inclina según lo lejos que esté del
+// centro, y las de los costados suben un poco para que el borde superior
+// dibuje un arco. Se recalcula en cada reparto porque la mano se achica al
+// ir jugando, y un abanico de dos cartas no es el mismo que el de tres.
+const FAN_ANGLE = 7;     // grados entre carta y carta
+const FAN_LIFT = 7;      // cuánto sube cada carta por paso hasta el borde
+
 function drawHumanHand() {
   el.handHuman.innerHTML = '';
-  game.hands[HUMAN].forEach((card, i) => {
+  const hand = game.hands[HUMAN];
+  const middle = (hand.length - 1) / 2;
+
+  hand.forEach((card, i) => {
     const c = renderCard(card);
+    const offset = i - middle;
+    c.style.setProperty('--rot', `${offset * FAN_ANGLE}deg`);
+    c.style.setProperty('--lift', `${Math.abs(offset) * FAN_LIFT}px`);
+    c.style.zIndex = String(i + 1);   // la de la derecha tapa a la anterior
     c.style.animationDelay = `${i * 70}ms`;
     c.addEventListener('click', () => human({ type: 'play', cardId: card.id }));
     c.addEventListener('pointerenter', () => {
@@ -243,12 +257,13 @@ function onEvent(e) {
       say(t('log.envidoRejected', e.value, e.winner === HUMAN));
       break;
     case 'round-end':
-      fx.shout(e.winner === HUMAN ? `+${e.value}` : `−${e.value}`,
-        { tone: e.winner === HUMAN ? 'good' : 'bad' });
       break;
     case 'score': {
       const node = e.player === HUMAN ? el.numHuman : el.numCpu;
       const from = e.scores[e.player] - e.points;
+      const mine = e.player === HUMAN;
+      fx.pop(`${mine ? '+' : '−'}${e.points}`,
+        { over: el.table, tone: mine ? 'good' : 'bad' });
       let step = 0;
       countUp(node, from, e.scores[e.player], () => {
         fx.burstAt(node, { count: 14, hue: e.player === HUMAN ? 50 : 340, power: 5 });

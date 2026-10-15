@@ -56,6 +56,24 @@ export class Fx {
     this.shake = Math.max(this.shake, amount);
   }
 
+  // "+3" saltando sobre la mesa. La posición se saltea al azar dentro del
+  // área que se le pase: dos puntos seguidos en el mismo pixel se leerían
+  // como un solo número parpadeando.
+  pop(text, { over = null, tone = 'good' } = {}) {
+    const host = this.stage;
+    const base = host.getBoundingClientRect();
+    const area = (over ?? host).getBoundingClientRect();
+    const jitter = (size, amount) => (Math.random() - 0.5) * size * amount;
+
+    const node = document.createElement('div');
+    node.className = `pop pop-${tone}`;
+    node.textContent = text;
+    node.style.left = `${area.left - base.left + area.width / 2 + jitter(area.width, 0.42)}px`;
+    node.style.top = `${area.top - base.top + area.height / 2 + jitter(area.height, 0.34)}px`;
+    host.appendChild(node);
+    setTimeout(() => node.remove(), 1100);
+  }
+
   // Cartel de canto que entra golpeando.
   shout(text, { tone = 'truco' } = {}) {
     const el = document.createElement('div');
