@@ -182,6 +182,46 @@ body::before {
 .tricks i.l { background: var(--red); }
 .tricks i.p { background: var(--muted); }
 
+/* Fila de controles chicos bajo el marcador de manos. */
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: calc(var(--px) * 2);
+  margin-top: calc(var(--px) * 2);
+}
+
+/* Banderas: botones chicos, el elegido con borde dorado y a tamaño completo.
+   Los otros van apagados para que se note cuál está activo sin leer. */
+.langs { display: flex; gap: var(--px); }
+.lang {
+  padding: var(--px);
+  background: #2a1a5e;
+  box-shadow: inset 0 0 0 1px var(--line);
+  line-height: 0;
+  opacity: 0.5;
+  filter: saturate(0.5);
+}
+.lang:hover { opacity: 1; filter: none; background: #3d2a7a; transform: none; }
+.lang.is-on {
+  opacity: 1;
+  filter: none;
+  box-shadow: inset 0 0 0 var(--px) var(--gold);
+}
+.lang .flag {
+  width: calc(var(--px) * 6);
+  height: auto;
+  image-rendering: pixelated;
+  shape-rendering: crispEdges;
+}
+
+/* En el cartel de inicio van más grandes: es donde se elige por primera vez. */
+#langs-overlay {
+  justify-content: center;
+  margin-top: calc(var(--px) * 6);
+}
+#langs-overlay .flag { width: calc(var(--px) * 9); }
+
 /* Silencio: discreto, pero siempre a la vista. Un juego que no se puede
    callar es un juego que se cierra. */
 .mute {

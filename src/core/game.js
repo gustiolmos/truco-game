@@ -5,9 +5,9 @@ import { makeDeck, shuffle } from './deck.js';
 import { envidoPoints, envidoValues, envidoRaises } from './envido.js';
 
 export const TRUCO_CHAIN = [
-  { key: 'truco', label: 'Truco', accept: 2, reject: 1 },
-  { key: 'retruco', label: 'Retruco', accept: 3, reject: 2 },
-  { key: 'vale-cuatro', label: 'Vale cuatro', accept: 4, reject: 3 },
+  { key: 'truco', accept: 2, reject: 1 },
+  { key: 'retruco', accept: 3, reject: 2 },
+  { key: 'vale-cuatro', accept: 4, reject: 3 },
 ];
 
 export const HUMAN = 0;

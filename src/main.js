@@ -7,6 +7,8 @@ import { ENVIDO_CALLS } from './core/envido.js';
 import { renderCard } from './ui/card.js';
 import { Fx, countUp } from './ui/fx.js';
 import { audio, armAudio } from './ui/audio.js';
+import { t, callLabel, locales, getLocale, setLocale, onLocaleChange } from './i18n/index.js';
+import { flagSprite } from './ui/flags.js';
 
 const $ = (id) => document.getElementById(id);
 const el = {
@@ -16,6 +18,8 @@ const el = {
   numHuman: $('num-human'), numCpu: $('num-cpu'),
   pot: $('pot'), tricks: $('tricks'),
   envido: $('envido'), envidoNum: $('envido-num'),
+  whoRival: $('who-rival'), whoYou: $('who-you'), whoEnvido: $('who-envido'),
+  langsHud: $('langs-hud'), langsOverlay: $('langs-overlay'),
   mute: $('mute'),
   overlay: $('overlay'), oTitle: $('overlay-title'), oText: $('overlay-text'), oBtn: $('overlay-btn'),
 };
@@ -48,7 +52,7 @@ function startRoundUI() {
   drawHumanHand();
   dealSounds();
   lastEnvido = null;
-  say(game.mano === HUMAN ? 'Sos mano.' : 'Es mano el rival.');
+  say(game.mano === HUMAN ? t('log.youAreMano') : t('log.rivalIsMano'));
   render();
   if (game.turn === CPU) queueCpu();
 }
@@ -114,7 +118,7 @@ function render() {
     .join('') + '<i></i>'.repeat(Math.max(0, 3 - game.trickResults.length));
 
   const v = game.roundValue();
-  el.pot.textContent = `${v} ${v === 1 ? 'punto' : 'puntos'} en juego`;
+  el.pot.textContent = t('hud.pot', v);
 
   renderEnvido();
 
@@ -160,14 +164,14 @@ function renderActions(legal) {
   };
 
   if (game.pending) {
-    add('Quiero', 'good', { type: 'accept' });
-    add('No quiero', 'bad', { type: 'reject' });
+    add(t('action.accept'), 'good', { type: 'accept' });
+    add(t('action.reject'), 'bad', { type: 'reject' });
   }
   for (const a of legal) {
     if (a.type === 'truco') {
-      add(TRUCO_CHAIN[game.trucoLevel].label, 'hot', a);
+      add(callLabel(TRUCO_CHAIN[game.trucoLevel].key), 'hot', a);
     } else if (a.type === 'envido') {
-      add(ENVIDO_CALLS[a.call].label, '', a);
+      add(callLabel(a.call), '', a);
     }
   }
 }
@@ -191,45 +195,43 @@ function onEvent(e) {
       break;
     }
     case 'trick-end': {
-      if (e.result === 'parda') { say('Parda.'); audio.play('reject', { volume: 0.6 }); break; }
+      if (e.result === 'parda') { say(t('log.parda')); audio.play('reject', { volume: 0.6 }); break; }
       const slot = TRICK_SLOT[e.result];
       slot.firstElementChild?.classList.add('winner');
       fx.burstAt(slot, { count: 26, hue: e.result === HUMAN ? 120 : 350, power: 6 });
       fx.kick(e.result === HUMAN ? 9 : 6);
       audio.play(e.result === HUMAN ? 'trickWin' : 'trickLose');
-      say(e.result === HUMAN ? 'Ganaste la mano.' : 'Se la lleva el rival.');
+      say(e.result === HUMAN ? t('log.youWinTrick') : t('log.rivalWinsTrick'));
       break;
     }
     case 'call': {
-      const label = e.kind === 'truco'
-        ? TRUCO_CHAIN.find((t) => t.key === e.call).label
-        : ENVIDO_CALLS[e.call].label;
+      const label = callLabel(e.call);
       fx.shout(label + '!', { tone: e.kind });
       audio.play(e.kind === 'truco' ? 'truco' : 'envido');
-      say(`${e.player === HUMAN ? 'Cantaste' : 'El rival canta'} ${label}.`);
+      say(e.player === HUMAN ? t('log.youCall', label) : t('log.rivalCalls', label));
       break;
     }
     case 'truco-accepted':
-      say('Quiero. Sube la apuesta.');
+      say(t('log.accepted'));
       fx.kick(8);
       audio.play('accept');
       break;
     case 'truco-rejected':
-      fx.shout('No quiero', { tone: e.winner === HUMAN ? 'good' : 'bad' });
+      fx.shout(t('shout.reject'), { tone: e.winner === HUMAN ? 'good' : 'bad' });
       audio.play('reject');
       break;
     case 'envido-showdown': {
       const mine = e.points[HUMAN];
       const theirs = e.points[CPU];
-      fx.shout(`${e.winner === HUMAN ? mine : theirs} son mejores`,
+      fx.shout(t('shout.envidoBetter', e.winner === HUMAN ? mine : theirs),
         { tone: e.winner === HUMAN ? 'good' : 'bad' });
       audio.play(e.winner === HUMAN ? 'trickWin' : 'trickLose');
-      say(`Vos ${mine} · Rival ${theirs}`);
+      say(t('log.envidoScore', mine, theirs));
       break;
     }
     case 'envido-rejected':
       audio.play('reject');
-      say(`No quiero el envido: ${e.value} para ${e.winner === HUMAN ? 'vos' : 'el rival'}.`);
+      say(t('log.envidoRejected', e.value, e.winner === HUMAN));
       break;
     case 'round-end':
       fx.shout(e.winner === HUMAN ? `+${e.value}` : `−${e.value}`,
@@ -250,9 +252,9 @@ function onEvent(e) {
     case 'game-over':
       audio.play(e.winner === HUMAN ? 'gameWin' : 'gameLose');
       setTimeout(() => showOverlay(
-        e.winner === HUMAN ? '¡Ganaste!' : 'Perdiste',
-        `${game.scores[HUMAN]} a ${game.scores[CPU]}`,
-        'Revancha', newGame), 900);
+        e.winner === HUMAN ? 'game.win' : 'game.lose',
+        ['game.score', game.scores[HUMAN], game.scores[CPU]],
+        'game.rematch', newGame), 900);
       break;
   }
 }
@@ -265,13 +267,17 @@ function nextRoundPrompt() {
   }, 1100);
 }
 
+// El overlay se queda con las claves, no con el texto ya resuelto: si el
+// jugador cambia de idioma con el cartel abierto (que es justo cuando el
+// selector está a la vista), tiene que repintarse solo.
+let overlayKeys = null;
+
 function showOverlay(title, text, btn, onClick) {
-  el.oTitle.textContent = title;
-  el.oText.textContent = text;
-  el.oBtn.textContent = btn;
+  overlayKeys = { title, text, btn };
+  paintOverlay();
   el.oBtn.onclick = () => { audio.play('click'); onClick(); };
   el.overlay.hidden = false;
-  if (title.startsWith('¡Gan')) {
+  if (title === 'game.win') {
     for (let i = 0; i < 6; i++) {
       setTimeout(() => fx.burst(Math.random() * innerWidth, innerHeight * 0.6,
         { count: 40, hue: Math.random() * 360, power: 12 }), i * 180);
@@ -279,14 +285,67 @@ function showOverlay(title, text, btn, onClick) {
   }
 }
 
+// Una clave suelta, o una clave con argumentos: ['hud.pot', 3].
+const resolve = (k) => (Array.isArray(k) ? t(...k) : t(k));
+
+function paintOverlay() {
+  if (!overlayKeys) return;
+  el.oTitle.textContent = resolve(overlayKeys.title);
+  el.oText.textContent = resolve(overlayKeys.text);
+  el.oBtn.textContent = resolve(overlayKeys.btn);
+}
+
+// ---- idioma -----------------------------------------------------------
+
+function buildLangPicker(container) {
+  container.innerHTML = '';
+  container.setAttribute('role', 'group');
+  for (const { id, name } of locales()) {
+    const b = document.createElement('button');
+    b.className = 'lang';
+    b.type = 'button';
+    b.title = name;
+    b.setAttribute('aria-label', name);
+    b.innerHTML = flagSprite(id);
+    b.addEventListener('click', () => { audio.play('click'); setLocale(id); });
+    container.appendChild(b);
+  }
+  paintLangPicker(container);
+}
+
+function paintLangPicker(container) {
+  container.setAttribute('aria-label', t('lang.label'));
+  for (const [i, { id }] of locales().entries()) {
+    container.children[i]?.classList.toggle('is-on', id === getLocale());
+  }
+}
+
+// Repintar todo lo que ya está en pantalla. Los textos que dependen del
+// estado de la partida salen de render(); los demás se pintan acá.
+function paintAll() {
+  el.whoRival.textContent = t('hud.rival');
+  el.whoYou.textContent = t('hud.you');
+  el.whoEnvido.textContent = t('hud.envido');
+  el.envido.title = t('hud.envidoTip');
+  paintMute();
+  paintOverlay();
+  for (const c of [el.langsHud, el.langsOverlay]) paintLangPicker(c);
+  if (game) render();
+}
+
+onLocaleChange(paintAll);
+
 // Botón de silencio. El estado queda guardado entre partidas.
 function paintMute() {
-  el.mute.textContent = audio.muted ? 'Mudo' : 'Sonido';
+  el.mute.textContent = audio.muted ? t('hud.muted') : t('hud.sound');
   el.mute.setAttribute('aria-pressed', String(audio.muted));
   el.mute.classList.toggle('is-muted', audio.muted);
 }
 el.mute.addEventListener('click', () => { audio.toggle(); paintMute(); });
 paintMute();
 
+for (const c of [el.langsHud, el.langsOverlay]) buildLangPicker(c);
+paintAll();
+
 armAudio();
-showOverlay('Truco', 'Primero a 15 puntos. Envido y truco incluidos.', 'Jugar', newGame);
+showOverlay('game.title', ['game.subtitle'], 'game.play', newGame);

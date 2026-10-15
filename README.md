@@ -27,6 +27,8 @@ más adelante, correr el mismo motor en un servidor para multijugador.
 | `src/ui/card.js` | carta en DOM: marco, palos repartidos o figura, inclinación 3D |
 | `src/ui/fx.js` | partículas, sacudida de pantalla, carteles de canto |
 | `src/ui/audio.js` | bus de Web Audio: variantes por gesto, silencio persistente |
+| `src/ui/flags.js` | banderas 16x12 en pixelart (los emoji de bandera no andan en Windows) |
+| `src/i18n/` | textos por idioma y selección; el motor no tiene texto visible |
 | `src/main.js` | pegamento: eventos → efectos, clics → acciones |
 
 ## Reglas implementadas

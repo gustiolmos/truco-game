@@ -5,6 +5,7 @@
 import { TrucoGame } from '../src/core/game.js';
 import { envidoPoints } from '../src/core/envido.js';
 import { makeCard } from '../src/core/deck.js';
+import { LOCALES, DEFAULT_LOCALE } from '../src/i18n/locales.js';
 
 let seed = 12345;
 const rng = () => (seed = (seed * 1664525 + 1013904223) % 4294967296) / 4294967296;
@@ -42,6 +43,27 @@ for (const [h, expected] of cases) {
 }
 
 console.log('envido: ok');
+
+// --- idiomas ---
+// Una clave que falta en un idioma no rompe nada hasta que un jugador llega
+// a esa pantalla, así que conviene que falle acá.
+{
+  const base = Object.keys(LOCALES[DEFAULT_LOCALE].t);
+  for (const [id, locale] of Object.entries(LOCALES)) {
+    for (const key of base) {
+      if (!(key in locale.t)) throw new Error(`a "${id}" le falta la clave "${key}"`);
+      const want = typeof LOCALES[DEFAULT_LOCALE].t[key];
+      const got = typeof locale.t[key];
+      if (want !== got) {
+        throw new Error(`"${id}" define "${key}" como ${got} y debería ser ${want}`);
+      }
+    }
+    for (const key of Object.keys(locale.t)) {
+      if (!base.includes(key)) throw new Error(`"${id}" tiene la clave de más "${key}"`);
+    }
+  }
+  console.log(`idiomas: ok (${Object.keys(LOCALES).length} completos, ${base.length} claves)`);
+}
 
 // --- jerarquía ---
 const higher = (a, b) => makeCard(...a).power > makeCard(...b).power;

@@ -3,6 +3,7 @@
 
 import { sprite } from './pixel.js';
 import { SUITS, FIGURES, PIP_LAYOUT } from './sprites.js';
+import { t } from '../i18n/index.js';
 
 // Tres tonos por palo. El sprite usa los tres, así la misma grilla sirve para
 // los cuatro palos y cada uno conserva su sombreado.
@@ -12,8 +13,6 @@ const SUIT_COLORS = {
   oro: ['#ffc233', '#c47f0e', '#ffe79a'],
   copa: ['#ff3b5c', '#b01432', '#ff9fae'],
 };
-
-const SUIT_NAME = { espada: 'espada', basto: 'basto', oro: 'oro', copa: 'copa' };
 
 export function renderCard(card, { faceDown = false } = {}) {
   const el = document.createElement('div');
@@ -44,7 +43,7 @@ export function renderCard(card, { faceDown = false } = {}) {
         <div class="corner tl"><b>${card.rank}</b>${mini}</div>
         <div class="corner br"><b>${card.rank}</b>${mini}</div>
         <div class="art-frame">${art}</div>
-        <div class="card-name">${card.rank} de ${SUIT_NAME[card.suit]}</div>
+        <div class="card-name">${t('card.name', card.rank, t(`suit.${card.suit}`))}</div>
       </div>
       <div class="card-glare"></div>
     </div>`;

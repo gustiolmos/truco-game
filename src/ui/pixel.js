@@ -24,7 +24,7 @@ export const PALETTE = {
 
 // Un <rect> por píxel infla el DOM al cuádruple de lo necesario, así que
 // junto las corridas horizontales del mismo color en un solo rect.
-function toRects(rows) {
+function toRects(rows, palette) {
   const out = [];
   rows.forEach((row, y) => {
     let run = 0;
@@ -32,7 +32,7 @@ function toRects(rows) {
     const flush = (x) => {
       if (run && char && char !== '.') {
         out.push(
-          `<rect x="${x - run}" y="${y}" width="${run}" height="1" fill="${PALETTE[char]}"/>`,
+          `<rect x="${x - run}" y="${y}" width="${run}" height="1" fill="${palette[char]}"/>`,
         );
       }
       run = 0;
@@ -59,10 +59,12 @@ function assertRect(name, rows) {
   return w;
 }
 
-export function sprite(name, rows, className = '') {
+// `palette` se puede cambiar (las banderas usan la suya); el caché va por
+// nombre, así que cada combinación de grilla y paleta necesita nombre propio.
+export function sprite(name, rows, className = '', palette = PALETTE) {
   if (!CACHE.has(name)) {
     const w = assertRect(name, rows);
-    CACHE.set(name, { body: toRects(rows), w, h: rows.length });
+    CACHE.set(name, { body: toRects(rows, palette), w, h: rows.length });
   }
   const { body, w, h } = CACHE.get(name);
   return `<svg class="sprite ${className}" viewBox="0 0 ${w} ${h}" aria-hidden="true">${body}</svg>`;

@@ -12,21 +12,24 @@
 <div id="stage">
   <header class="hud">
     <div class="score" id="score-cpu">
-      <span class="who">Rival</span>
+      <span class="who" id="who-rival">Rival</span>
       <span class="num" id="num-cpu">0</span>
     </div>
     <div class="round-info">
       <div class="pot" id="pot">1 punto en juego</div>
       <div class="tricks" id="tricks"></div>
-      <button class="mute" id="mute" type="button" aria-pressed="false">Sonido</button>
+      <div class="bar">
+        <div class="langs" id="langs-hud"></div>
+        <button class="mute" id="mute" type="button" aria-pressed="false">Sonido</button>
+      </div>
     </div>
     <div class="hud-right">
       <div class="envido" id="envido" title="Tus puntos de envido, ya sumados">
-        <span class="who">Envido</span>
+        <span class="who" id="who-envido">Envido</span>
         <span class="envido-num" id="envido-num">0</span>
       </div>
       <div class="score" id="score-human">
-        <span class="who">Vos</span>
+        <span class="who" id="who-you">Vos</span>
         <span class="num" id="num-human">0</span>
       </div>
     </div>
@@ -48,6 +51,7 @@
     <h1 id="overlay-title"></h1>
     <p id="overlay-text"></p>
     <button id="overlay-btn"></button>
+    <div class="langs" id="langs-overlay"></div>
   </div>
 </div>
 

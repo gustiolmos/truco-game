@@ -14,9 +14,9 @@ export function envidoPoints(hand) {
 }
 
 export const ENVIDO_CALLS = {
-  envido: { label: 'Envido', value: 2 },
-  'real-envido': { label: 'Real envido', value: 3 },
-  'falta-envido': { label: 'Falta envido', value: null },
+  envido: { value: 2 },
+  'real-envido': { value: 3 },
+  'falta-envido': { value: null },
 };
 
 // `chain` es la lista de cantos encadenados, en orden.
