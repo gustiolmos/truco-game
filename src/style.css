@@ -358,6 +358,42 @@ body::after {
    es parte del aviso, no sólo el texto. */
 #menu-quit.armed { background: var(--red); color: #fff2f4; }
 
+/* La fila de la mano propia: las cartas centradas y el contador de envido
+   justo encima de ellas. */
+.hand-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Contador de envido: la suma ya hecha, para no tener que sumarla en la
+   cabeza. Va apoyado sobre las cartas y en voz baja: tiene que estar
+   cuando lo buscás, no llamarte la atención cuando no. */
+.envido {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: baseline;
+  gap: calc(var(--px) * 1.5);
+  padding: calc(var(--px) * 0.75) calc(var(--px) * 2.5);
+  border-radius: var(--r-sm);
+  background: rgba(0, 0, 0, 0.28);
+  white-space: nowrap;
+}
+.envido .who { font-size: 0.6rem; letter-spacing: 0.1em; }
+.envido-num {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #bcd9ff;
+  font-variant-numeric: tabular-nums;
+}
+/* Cuando el envido ya no se puede cantar, el número sobra: se apaga. */
+.envido.spent { opacity: 0.4; }
+.envido.spent .envido-num { color: var(--muted); }
+
 /* ---------- cartas ---------- */
 .hand, .table {
   display: flex;
@@ -870,10 +906,7 @@ button.bad:hover { background: #5e374b; }
   /* En pantalla angosta no queda lugar al costado de las cartas, así que el
      contador pasa arriba de la mano. Sigue a la vista sin tapar nada. */
   .hand-row { flex-direction: column; gap: calc(var(--px) * 2); }
-  .envido {
-    position: static;
-    transform: none;
-  }
+  .envido { position: static; transform: none; }
   .hud { gap: calc(var(--px) * 2); }
   button { font-size: 0.92rem; padding: calc(var(--px) * 3) calc(var(--px) * 5); }
   .log { font-size: 0.72rem; }

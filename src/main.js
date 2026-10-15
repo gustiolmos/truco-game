@@ -199,9 +199,9 @@ function render() {
   renderDeck(legal);
 }
 
-// El envido no cambia durante la ronda (se cuenta sobre las tres cartas
-// repartidas, se hayan jugado o no), así que sólo late cuando cambia de
-// verdad: al repartir.
+// El envido no cambia durante la ronda: se cuenta sobre las tres cartas
+// repartidas, se hayan jugado o no. Sólo se reescribe cuando cambia de
+// verdad, al repartir.
 let lastEnvido = null;
 
 function renderEnvido() {
@@ -210,9 +210,6 @@ function renderEnvido() {
 
   if (points !== lastEnvido) {
     el.envidoNum.textContent = points;
-    el.envidoNum.classList.remove('pulse');
-    void el.envidoNum.offsetWidth;   // reinicia la animación
-    el.envidoNum.classList.add('pulse');
     lastEnvido = points;
   }
   el.envido.classList.toggle('spent', !live);
