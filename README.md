@@ -7,6 +7,22 @@ node serve.mjs      # http://localhost:5173
 node test/selfplay.mjs
 ```
 
+## Estilo
+
+Arcade de 16 bits, ambientado en la época gaucha. El truco no viene de un
+casino: se hizo lo que es en el mostrador de una pulpería, así que la paleta
+es esa —adobe, madera gastada, luz de candil y punzó— y no el paño verde
+que tenía al principio.
+
+16 bits quiere decir relleno plano, contorno duro y sombra desplazada sin
+difuminar. Si algo se ve lustroso, está fuera de estilo. El pixel manda en
+el arte de las cartas y en el título; el cuerpo de texto va en la fuente del
+sistema, porque una pixel en párrafos chicos se lee mal.
+
+Toda la paleta son doce tokens en `:root` más los cuatro tríos de
+`SUIT_COLORS` en `src/ui/card.js`: cambiar de clima es cambiar eso, sin
+tocar una línea de lógica.
+
 ## Arquitectura
 
 Los assets están en `assets/` con su licencia al lado: fuente Silkscreen (OFL)

@@ -14,7 +14,8 @@ import {
 import {
   Run, ANTE_COUNT, anteConfig, makeSeed, normalizeSeed, isSeed, saveRun, loadRun, offerFor,
 } from '../src/core/run.js';
-import { SUITS } from '../src/ui/sprites.js';
+import { SUITS, FIGURES } from '../src/ui/sprites.js';
+import { PALETTE } from '../src/ui/pixel.js';
 
 let seed = 12345;
 const rng = () => (seed = (seed * 1664525 + 1013904223) % 4294967296) / 4294967296;
@@ -695,6 +696,55 @@ console.log('envido: ok');
     console.log(`modificadores: ok (${MODS.length} verificados uno por uno, `
       + `300 corridas equipando al azar, ${disparos} disparos)`);
   }
+}
+
+// --- sprites ---
+// Las grillas se escriben a mano, carácter por carácter, y una fila a la que
+// le falta un píxel deforma el dibujo sin avisar: la carta sale torcida y hay
+// que descubrirlo mirándola. El renderer ya lo verifica, pero recién cuando
+// alguien abre esa carta en el navegador. Mejor que falle acá.
+{
+  const medir = (nombre, grilla, ancho, alto) => {
+    if (grilla.length !== alto) {
+      throw new Error(`sprite "${nombre}": ${grilla.length} filas, se esperaban ${alto}`);
+    }
+    grilla.forEach((fila, i) => {
+      if (fila.length !== ancho) {
+        throw new Error(`sprite "${nombre}": fila ${i} mide ${fila.length}, se esperaba ${ancho}`);
+      }
+    });
+  };
+
+  for (const [nombre, grilla] of Object.entries(SUITS)) medir(`palo ${nombre}`, grilla, 24, 24);
+  for (const [nombre, grilla] of Object.entries(FIGURES)) medir(`figura ${nombre}`, grilla, 32, 44);
+
+  // Y que no haya caracteres sin color: un carácter que no está en la paleta
+  // se dibuja con fill="undefined", que el navegador pinta de negro. Un
+  // agujero negro en medio de una carta es difícil de atribuir a esto.
+  const conocidos = new Set([...Object.keys(PALETTE), '.']);
+  for (const [nombre, grilla] of [...Object.entries(SUITS), ...Object.entries(FIGURES)]) {
+    for (const [i, fila] of grilla.entries()) {
+      for (const ch of fila) {
+        if (!conocidos.has(ch)) {
+          throw new Error(`sprite "${nombre}", fila ${i}: el carácter "${ch}" no está en la paleta`);
+        }
+      }
+    }
+  }
+
+  // Cada palo tiene que usar su color: si una grilla quedara sin los tonos
+  // del palo, los cuatro palos se verían iguales y las cartas no se podrían
+  // distinguir de un vistazo.
+  for (const [nombre, grilla] of Object.entries(SUITS)) {
+    const pintado = grilla.join('');
+    if (!/[abc]/.test(pintado)) {
+      throw new Error(`el palo "${nombre}" no usa ningún tono del palo`);
+    }
+  }
+
+  const palos = Object.keys(SUITS).length;
+  const figuras = Object.keys(FIGURES).length;
+  console.log(`sprites: ok (${palos} palos 24x24, ${figuras} figuras 32x44, todos en paleta)`);
 }
 
 // --- modos ---

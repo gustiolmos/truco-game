@@ -1,33 +1,57 @@
 /* ------------------------------------------------------------------
-   Interfaz limpia con un guiño pixel, no un juego pixelart.
+   Arcade de 16 bits, ambientado en la pulpería.
 
-   El pixel vive en el arte de las cartas (los palos y las figuras) y en
-   ningún otro lado: la tipografía es la del sistema, los cantos son curvas
-   y los tamaños se leen cómodos. Lo que hacía que TODO se viera pixelado
-   era la fuente y los bordes escalonados, no los dibujos.
+   El truco no viene de un casino: se hizo lo que es en el mostrador de una
+   pulpería, así que la paleta es esa —adobe, madera gastada y luz de
+   candil— y no el paño verde que tenía antes.
 
-   --px sigue siendo la unidad de espaciado, pero ya no es dogma.
+   16 bits quiere decir relleno plano, contorno duro y sombra desplazada
+   sin difuminar. Nada de degradados suaves ni de brillos: si algo se ve
+   lustroso, está fuera de época y fuera de estilo.
+
+   El pixel manda en el arte de las cartas y en el título; el cuerpo de
+   texto sigue en la fuente del sistema, porque una pixel en párrafos
+   chicos se lee mal y eso no lo arregla el estilo.
+
+   --px es la unidad de espaciado, y también el tamaño del píxel lógico:
+   los contornos y las sombras se miden en --px para que caigan en grilla.
    ------------------------------------------------------------------ */
+
+/* La fuente de los carteles: pixel, de la casa. Ya estaba en assets/ sin
+   usar desde que la interfaz pasó a la fuente del sistema. Para el título
+   es justo lo que hace falta: arcade, 16 bits, y local, así el juego sigue
+   andando offline. */
+@font-face {
+  font-family: 'Silkscreen';
+  src: url('../assets/fonts/Silkscreen-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
 
 :root {
   --px: 4px;
 
-  /* Paleta corta a propósito: un pixelart con 40 colores se ve sucio.
-     Pero corta no quiere decir apagada: los acentos van saturados a fondo,
-     y el contraste lo da el fondo oscuro, no bajarles el brillo. */
-  --bg: #2f7259;
-  --bg-2: #1e4d3d;
-  --ink: #f2f7f4;
-  --ink-dark: #121a18;
-  --muted: #a7c2b7;
-  --line: #2d5a4b;
-  --panel: #17302a;
-  --panel-2: #24463c;
-  --gold: #ffc233;
-  --red: #ff3b5c;
-  --blue: #3aa0ff;
-  --green: #35d35f;
-  --card-face: #fffaf0;
+  /* La paleta es la de una pulpería de noche: adobe y madera gastada a la
+     luz de un candil, no el paño verde de un casino. El truco se hizo lo
+     que es en una de estas, así que el verde de casino era el disfraz.
+
+     Sigue siendo corta a propósito: un pixelart con 40 colores se ve sucio.
+     Y los acentos van saturados a fondo, que el contraste lo da el fondo
+     oscuro y no bajarles el brillo. */
+  --bg: #4a3326;          /* madera del mostrador, iluminada */
+  --bg-2: #241a15;        /* los rincones, donde no llega la vela */
+  --ink: #f6ead2;         /* blanco hueso, no blanco de pantalla */
+  --ink-dark: #150f0c;
+  --muted: #b79b7a;       /* cuero gastado */
+  --line: #5a3f2c;        /* la veta entre tabla y tabla */
+  --panel: #2a1d16;
+  --panel-2: #3b2a1f;
+  --gold: #ffbe2e;        /* la llama del candil, y la moneda */
+  --red: #d42a3d;         /* punzó */
+  --blue: #3f7fd0;        /* el acero de la espada */
+  --green: #5f9e3d;       /* verde de campo, no de neón */
+  --card-face: #f2e3c4;   /* naipe viejo, no papel recién impreso */
 
 
   /* La carta mide 1,55 de alto por 1 de ancho, así que si sólo se atara al
@@ -36,9 +60,12 @@
   --card-w: clamp(84px, min(14vw, 17vh), 152px);
   /* Tipografía del sistema: sin descarga, y en cada equipo se ve nativa. */
   --font: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+  /* La de los carteles. Si a la pixel le falta algún signo (los de
+     apertura son los candidatos), el navegador lo saca de la que sigue. */
+  --font-display: 'Silkscreen', 'Arial Black', Impact, var(--font);
 
-  --r: 12px;        /* paneles y cartas */
-  --r-sm: 8px;      /* botones y fichas */
+  --r: 8px;         /* paneles y cartas: menos redondeo, más arcade */
+  --r-sm: 4px;      /* botones y fichas */
 }
 
 * { box-sizing: border-box; }
@@ -64,7 +91,7 @@ body::before {
      es ruido fractal en SVG incrustado: marmola el verde sin pedir ningún
      archivo y se ve bien a cualquier resolución. */
   background:
-    radial-gradient(ellipse 90% 70% at 50% 8%, rgba(255, 255, 255, 0.10), transparent 70%),
+    radial-gradient(ellipse 90% 70% at 50% 8%, rgba(255, 196, 112, 0.16), transparent 70%),
     linear-gradient(185deg, var(--bg) 0%, var(--bg-2) 100%);
   z-index: -2;
 }
@@ -581,11 +608,11 @@ body::after {
 .card-back {
   background:
     repeating-conic-gradient(from 0deg at 50% 50%,
-      #2b5f8a 0% 25%, #1d4463 0% 50%)
+      #8c2230 0% 25%, #5c1420 0% 50%)
       0 0 / calc(var(--px) * 2) calc(var(--px) * 2);
   box-shadow:
     inset 0 0 0 var(--px) var(--ink-dark),
-    inset 0 0 0 calc(var(--px) * 2) #4d88c0;
+    inset 0 0 0 calc(var(--px) * 2) #d99a3c;
   padding: 0;
 }
 
@@ -685,6 +712,287 @@ body::after {
 .crack-light { stroke: rgba(255, 255, 255, 0.8); stroke-width: 1.5; }
 @keyframes crack-draw {
   to { stroke-dashoffset: 0; }
+}
+
+/* ---------- portada ---------- */
+
+/* La portada no es un cuadro de diálogo ni una pantalla partida en dos: es
+   el juego de fondo, a pantalla completa, con el menú encima. La partida de
+   muestra hace de escenario y el menú vive sobre una banda oscura a la
+   izquierda, como en cualquier menú de juego.
+
+   Va con la clase doble porque .overlay-card se define más abajo: si no, le
+   gana y le vuelve a poner el marco y el fondo de cuadro de diálogo. */
+.overlay-card.home-card {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-height: none;
+  padding: 0;
+  border-radius: 0;
+  overflow: hidden;
+  text-align: left;
+  background: none;
+  box-shadow: none;
+}
+
+/* Con la portada puesta, el velo deja de ser un velo: es el fondo del
+   escenario. Opaco, porque atrás está la mesa vacía con su HUD y su mazo, y
+   verlos asomar la convierte otra vez en un cartel encima de otra cosa. */
+.overlay.is-home {
+  place-items: stretch;
+  background:
+    radial-gradient(ellipse 90% 70% at 50% 0%, rgba(255, 196, 112, 0.16), transparent 70%),
+    linear-gradient(185deg, var(--bg) 0%, var(--bg-2) 100%);
+}
+
+/* ---------- el escenario ---------- */
+
+/* La partida de muestra ocupa toda la pantalla y se juega detrás del menú.
+   No se toca: es una vidriera, no un tablero. */
+.home-demo {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: calc(var(--px) * 2);
+  padding: clamp(24px, 5vh, 64px) clamp(24px, 4vw, 72px);
+  pointer-events: none;
+  user-select: none;
+  /* Como ahora es el fondo entero, las cartas pueden ser grandes: es lo que
+     se mira mientras se decide qué apretar. */
+  --card-w: clamp(64px, 8.5vw, 124px);
+}
+
+/* La mesa corrida a la derecha: el menú se queda con la izquierda, y lo que
+   se juega tiene que verse entero, no por detrás del texto. */
+.home-demo .hand,
+.home-demo-table { margin-left: clamp(0px, 24vw, 420px); }
+
+.home-demo-table {
+  display: flex;
+  gap: calc(var(--px) * 3);
+}
+/* Las ranuras de la muestra no se dibujan vacías: en la mesa marcan dónde
+   va a caer la carta, pero en una vidriera son dos cajones grises. */
+.home-demo .slot::before { display: none; }
+
+/* Un velo sobre el escenario: sin esto, las cartas compiten con el menú y
+   no se lee ni una cosa ni la otra. */
+.home-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(8, 20, 16, 0.92) 0%, rgba(8, 20, 16, 0.75) 26%, transparent 58%),
+    linear-gradient(0deg, rgba(8, 20, 16, 0.55), transparent 45%);
+}
+
+/* ---------- la banda del menú ---------- */
+
+.home-main {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: clamp(28px, 5vh, 56px);
+  width: min(520px, 46vw);
+  height: 100%;
+  padding: 0 clamp(24px, 4vw, 72px);
+}
+
+.home-brand { display: flex; flex-direction: column; gap: calc(var(--px) * 2); }
+
+/* El título entra rebotando: aparece pasado de tamaño y torcido, y se
+   acomoda de golpe. Es el mismo resorte que usan los globos de canto, que
+   ya es el gesto del juego. */
+.home-title {
+  margin: 0;
+  font-family: var(--font-display);
+  /* La pixel ocupa mucho más que una sans por letra, así que el mismo
+     tamaño de antes no entra: el número es más chico y se ve más grande. */
+  font-size: clamp(1.3rem, 3.1vw, 2.7rem);
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--gold);
+  /* Nada de degradados ni sombras difuminadas: 16 bits es relleno plano,
+     contorno de un píxel y un bloque de sombra desplazado. El contorno va
+     en las cuatro direcciones y después los dos escalones de la sombra. */
+  text-shadow:
+    var(--px) 0 0 var(--ink-dark),
+    calc(var(--px) * -1) 0 0 var(--ink-dark),
+    0 var(--px) 0 var(--ink-dark),
+    0 calc(var(--px) * -1) 0 var(--ink-dark),
+    calc(var(--px) * 2) calc(var(--px) * 2) 0 #8a4b10,
+    calc(var(--px) * 3) calc(var(--px) * 3) 0 var(--ink-dark);
+  animation: home-title-in 0.62s cubic-bezier(0.15, 1.9, 0.4, 1) backwards;
+}
+
+@keyframes home-title-in {
+  0% { opacity: 0; transform: scale(0.4) rotate(-6deg) translateY(calc(var(--px) * 6)); }
+  55% { opacity: 1; transform: scale(1.12) rotate(2deg); }
+  100% { opacity: 1; transform: scale(1) rotate(0deg); }
+}
+
+/* El renglón de abajo dice de qué va, en chico: el título es un grito, no
+   una explicación. */
+.home-tagline {
+  margin: 0;
+  font-size: clamp(0.72rem, 1.1vw, 0.92rem);
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--muted);
+  animation: home-title-in 0.62s cubic-bezier(0.15, 1.9, 0.4, 1) 0.1s backwards;
+}
+
+/* Los accesos son texto, no botones: en una portada los botones con cuerpo
+   compiten con el escenario. El filete de arriba y el de abajo los agrupan
+   sin encerrarlos en una caja. */
+.home-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: clamp(10px, 1.6vh, 20px);
+  padding: clamp(16px, 2.6vh, 32px) 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+}
+
+.home-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+  color: var(--ink);
+  font: inherit;
+  font-size: clamp(1rem, 1.5vw, 1.35rem);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-align: left;
+  cursor: pointer;
+  opacity: 0.82;
+  transition: color 0.14s ease, opacity 0.14s ease, transform 0.14s ease;
+}
+/* Al señalarlo se enciende y se corre, sin caja ni fondo: el mismo gesto
+   que una carta saliendo del abanico. */
+.home-link:hover {
+  background: none;
+  color: var(--gold);
+  opacity: 1;
+  transform: translateX(calc(var(--px) * 2));
+}
+.home-link:focus-visible { outline: 2px solid var(--gold); outline-offset: calc(var(--px) * 1.5); }
+.home-link[hidden] { display: none; }
+.home-link[disabled] { color: var(--green); opacity: 1; cursor: default; }
+
+/* ---------- idioma y redes ---------- */
+
+.home-footer {
+  position: absolute;
+  right: clamp(20px, 3vw, 48px);
+  bottom: clamp(20px, 3vw, 48px);
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: calc(var(--px) * 3);
+}
+
+.socials { display: flex; gap: var(--px); }
+
+/* Mismo tamaño y mismo apagado que las banderas del idioma, para que se
+   lean como una sola fila de accesos chicos y no como dos cosas distintas. */
+.social {
+  display: grid;
+  place-items: center;
+  min-width: calc(var(--px) * 9);
+  padding: calc(var(--px) * 1.5) calc(var(--px) * 2);
+  border: 0;
+  border-radius: var(--r-sm);
+  background: var(--panel);
+  box-shadow: inset 0 0 0 1px var(--line);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-decoration: none;
+  opacity: 0.5;
+  cursor: pointer;
+  transition: opacity 0.14s ease, background 0.14s ease;
+}
+.social:hover { opacity: 1; background: var(--panel-2); transform: none; }
+/* Las que todavía no tienen a dónde ir no se esconden: se muestran
+   apagadas, igual que los modos que faltan. */
+.social.is-soon { opacity: 0.28; cursor: default; }
+.social.is-soon:hover { opacity: 0.4; background: var(--panel); }
+
+/* ---------- el canto de la muestra ---------- */
+
+/* La versión chica del globo de la mesa. El de la mesa se cuelga del
+   escenario del juego, que acá está tapado por la portada, así que este
+   vive adentro de la muestra. */
+.demo-shout {
+  position: absolute;
+  left: 62%;
+  z-index: 2;
+  padding: calc(var(--px) * 1.5) calc(var(--px) * 3.5);
+  border: 2px solid var(--ink-dark);
+  border-radius: 999px;
+  font-size: clamp(0.78rem, 1.5vw, 1.15rem);
+  font-weight: 800;
+  white-space: nowrap;
+  color: var(--ink-dark);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+  animation: demo-shout-in 0.26s cubic-bezier(0.15, 1.9, 0.4, 1);
+}
+.demo-shout[hidden] { display: none; }
+.demo-shout.is-cpu { top: 22%; transform: translateX(-50%); }
+.demo-shout.is-human { bottom: 22%; transform: translateX(-50%); }
+.demo-shout.tone-truco { background: var(--red); border-color: #7d0f24; }
+.demo-shout.tone-envido { background: var(--blue); border-color: #11467d; }
+.demo-shout.tone-good { background: var(--green); border-color: #0f6b2c; }
+.demo-shout.tone-bad { background: #6d7f86; border-color: #2c3a40; color: #f2f7f4; }
+@keyframes demo-shout-in {
+  0% { opacity: 0; scale: 0.4; }
+  55% { opacity: 1; scale: 1.15; }
+  100% { opacity: 1; scale: 1; }
+}
+
+/* Sin efectos no hay muestra: lo que se pidió apagar es justamente esto. */
+:root[data-fx="off"] .home-demo { display: none; }
+@media (prefers-reduced-motion: reduce) {
+  .home-demo { display: none; }
+  .home-title, .home-tagline { animation: none; }
+}
+
+/* El menú de configuración se abre desde la portada, y la portada es un
+   cartel: sin esto quedaría atrás, porque los dos comparten capa. */
+#menu { z-index: 61; }
+
+/* En pantalla angosta la banda se queda con todo el ancho y el escenario
+   pasa a vivir detrás del texto, más tapado para que se siga leyendo. */
+@media (max-width: 860px) {
+  .home-main { width: 100%; }
+  .home-demo .hand,
+  .home-demo-table { margin-left: 0; }
+  .home-demo { --card-w: clamp(52px, 13vw, 92px); }
+  .home-card::after {
+    background:
+      linear-gradient(90deg, rgba(8, 20, 16, 0.92) 0%, rgba(8, 20, 16, 0.86) 55%, rgba(8, 20, 16, 0.7) 100%),
+      linear-gradient(0deg, rgba(8, 20, 16, 0.6), transparent 50%);
+  }
+  .demo-shout { left: 50%; }
 }
 
 /* ---------- elección de modo ---------- */
@@ -1318,11 +1626,11 @@ body::after {
   border-radius: calc(var(--r) - 4px);
   background:
     repeating-conic-gradient(from 0deg at 50% 50%,
-      #2b5f8a 0% 25%, #1d4463 0% 50%)
+      #8c2230 0% 25%, #5c1420 0% 50%)
       0 0 / 8px 8px;
   box-shadow:
     inset 0 0 0 3px var(--ink-dark),
-    inset 0 0 0 5px #4d88c0,
+    inset 0 0 0 5px #d99a3c,
     0 3px 6px rgba(0, 0, 0, 0.45);
   transition: transform 0.16s ease-out;
 }
@@ -1370,20 +1678,48 @@ body::after {
 }
 .turn-timer[hidden] { display: none; }
 
+/* La vela: lo que queda es cera, y la llama está parada en el punto por
+   donde se está consumiendo. Es la misma barra de antes, pero deja de ser
+   un medidor de videojuego y pasa a ser el candil de la mesa. */
 .turn-timer-fill {
   display: block;
   height: 100%;
   width: 100%;
   transform-origin: left center;
-  background: var(--green);
-  /* El conteo avanza a pasos de verdad, no deslizando: así la barra */
-  /* se siente como un reloj digital y no como una carga continua. */
+  background: var(--ink);
+  box-shadow: inset 0 calc(var(--px) * -0.5) 0 rgba(0, 0, 0, 0.25);
   transition: transform 0.1s linear, background-color 0.3s ease;
 }
-/* En el tramo caliente, la barra deja de ser verde y pasa a arder: el
-   mismo --heat que mueve el borde de la pantalla la pinta acá. */
-.turn-timer.is-low .turn-timer-fill {
-  background: linear-gradient(90deg, var(--red), var(--gold));
+/* Cuando queda poco, la cera se calienta antes de apagarse. */
+.turn-timer.is-low .turn-timer-fill { background: #ffd79a; }
+
+.turn-timer-flame {
+  position: absolute;
+  top: 50%;
+  /* --burn lo mueve tickTimer: es lo que queda de vela, de 1 a 0. */
+  left: calc(var(--burn, 1) * 100%);
+  width: calc(var(--px) * 2);
+  height: calc(var(--px) * 3.5);
+  margin-left: calc(var(--px) * -1);
+  border-radius: 50% 50% 45% 45%;
+  background: linear-gradient(180deg, #fff3c0 0%, var(--gold) 45%, #e2690f 100%);
+  box-shadow: 0 0 calc(var(--px) * 2) rgba(255, 170, 60, 0.9);
+  transform: translateY(-62%);
+  transform-origin: 50% 100%;
+  /* steps y no una curva suave: una llama de 16 bits parpadea por cuadros. */
+  animation: candil 0.36s steps(3, end) infinite;
+  pointer-events: none;
+}
+@keyframes candil {
+  0%, 100% { transform: translateY(-62%) scaleY(1) scaleX(1); }
+  50% { transform: translateY(-66%) scaleY(1.22) scaleX(0.88); }
+}
+
+/* Apagada la vela, no queda llama que mostrar. */
+.turn-timer[hidden] .turn-timer-flame { display: none; }
+:root[data-fx="off"] .turn-timer-flame { animation: none; }
+@media (prefers-reduced-motion: reduce) {
+  .turn-timer-flame { animation: none; }
 }
 
 .turn-timer-num {

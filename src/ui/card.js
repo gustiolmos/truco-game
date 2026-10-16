@@ -7,11 +7,15 @@ import { t } from '../i18n/index.js';
 
 // Tres tonos por palo. El sprite usa los tres, así la misma grilla sirve para
 // los cuatro palos y cada uno conserva su sombreado.
+// Los cuatro palos, templados para la luz de candil de la pulpería: la
+// espada es acero, el basto es leña verde, el oro es la moneda y la copa el
+// punzó. Siguen siendo tres tonos por palo, porque el sprite usa los tres y
+// así la misma grilla sirve para los cuatro.
 export const SUIT_COLORS = {
-  espada: ['#3aa0ff', '#1a5fc4', '#a8d8ff'],
-  basto: ['#35d35f', '#13873a', '#9bf0ae'],
-  oro: ['#ffc233', '#c47f0e', '#ffe79a'],
-  copa: ['#ff3b5c', '#b01432', '#ff9fae'],
+  espada: ['#4a8bd4', '#204d8c', '#a9cdf0'],
+  basto: ['#5f9e3d', '#2f5f22', '#a8d583'],
+  oro: ['#ffbe2e', '#b87611', '#ffe3a0'],
+  copa: ['#d9384b', '#8b1527', '#f0a0a8'],
 };
 
 export function renderCard(card, { faceDown = false } = {}) {

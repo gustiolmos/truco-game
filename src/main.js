@@ -62,7 +62,18 @@ const el = {
   menuResume: $('menu-resume'), menuQuit: $('menu-quit'),
   labelSound: $('label-sound'), labelVolume: $('label-volume'),
   labelLanguage: $('label-language'),
-  overlay: $('overlay'), oTitle: $('overlay-title'), oText: $('overlay-text'), oBtn: $('overlay-btn'),
+  overlay: $('overlay'),
+  screenGameover: $('screen-gameover'), gameoverTitle: $('gameover-title'),
+  gameoverText: $('gameover-text'), gameoverBtn: $('gameover-btn'),
+  gameoverQuit: $('gameover-quit'),
+  homeTitle: $('home-title'), homeTagline: $('home-tagline'),
+  homeContinue: $('home-continue'), homeNew: $('home-new'),
+  homeSettings: $('home-settings'), homeShare: $('home-share'),
+  socialInstagram: $('social-instagram'), socialFacebook: $('social-facebook'),
+  socialGithub: $('social-github'),
+  homeDemo: $('home-demo'), demoShout: $('demo-shout'),
+  demoHandCpu: $('demo-hand-cpu'), demoHandHuman: $('demo-hand-human'),
+  demoSlotCpu: $('demo-slot-cpu'), demoSlotHuman: $('demo-slot-human'),
 };
 
 const fx = new Fx(el.fx, el.stage);
@@ -120,7 +131,6 @@ function setTarget(value) {
   try { localStorage.setItem(TARGET_KEY, String(value)); } catch { /* modo privado */ }
   resetVitals();
   paintTargetPickers();
-  paintOverlay();      // el subtítulo dice a cuántos puntos se juega
 }
 
 // Truco clásico: una partida suelta al largo elegido, sin corrida de por
@@ -692,6 +702,8 @@ function tickTimer(now) {
   const heat = left > BURN_FROM ? 0 : 1 - left / BURN_FROM;
 
   el.turnTimerFill.style.transform = `scaleX(${ratio})`;
+  // La llama va en la punta de lo que queda de vela, no en un lugar fijo.
+  el.turnTimer.style.setProperty('--burn', String(ratio));
   el.turnTimerNum.textContent = (left / 1000).toFixed(1);
   el.turnTimer.classList.toggle('is-low', heat > 0);
   setHeat(heat);
@@ -894,7 +906,7 @@ function renderActions(legal) {
 // que la carta se sienta apoyada contra la mesa y no posada.
 const FLIGHT = 280;
 
-function flyInto(node, from, { spin = 0, delay = 0, rest = '', anticipate = true } = {}) {
+function flyInto(node, from, { spin = 0, delay = 0, rest = '', anticipate = true, quiet = false } = {}) {
   if (!from || prefersReduced()) return;
   const to = node.getBoundingClientRect();
   const dx = from.left + from.width / 2 - (to.left + to.width / 2);
@@ -908,8 +920,12 @@ function flyInto(node, from, { spin = 0, delay = 0, rest = '', anticipate = true
   node.classList.add('flying', 'flown');
   // Chispas en el punto de salida, no sólo en el de llegada: marcan de
   // dónde vino y el ojo sigue el recorrido en vez de buscar la carta.
-  setTimeout(() => fx.burst(from.left + from.width / 2, from.top + from.height / 2,
-    { count: anticipate ? 8 : 5, hue: 200, power: 3 }), delay);
+  // La muestra de la portada vuela callada: el golpe de pantalla y las
+  // chispas viven en la capa de la mesa, que ahí está tapada.
+  if (!quiet) {
+    setTimeout(() => fx.burst(from.left + from.width / 2, from.top + from.height / 2,
+      { count: anticipate ? 8 : 5, hue: 200, power: 3 }), delay);
+  }
   // Anticipación, viaje, impacto y rebote. La carta primero tira para atrás
   // —se hunde un poco en la mano y se agranda, como quien la levanta para
   // tirarla—, después sale, llega pasada de tamaño y se asienta. Son cuatro
@@ -940,10 +956,12 @@ function flyInto(node, from, { spin = 0, delay = 0, rest = '', anticipate = true
   });
   // El impacto va cuando llega, no cuando sale: el golpe de pantalla tiene
   // que coincidir con la carta tocando la mesa.
-  setTimeout(() => {
-    fx.kick(anticipate ? 9 : 4);
-    fx.burstAt(node, { count: anticipate ? 10 : 6, hue: 45, power: anticipate ? 4 : 3 });
-  }, delay + FLIGHT * 0.72);
+  if (!quiet) {
+    setTimeout(() => {
+      fx.kick(anticipate ? 9 : 4);
+      fx.burstAt(node, { count: anticipate ? 10 : 6, hue: 45, power: anticipate ? 4 : 3 });
+    }, delay + FLIGHT * 0.72);
+  }
   flight.finished.then(() => node.classList.remove('flying')).catch(() => {});
 }
 
@@ -1145,7 +1163,7 @@ function onEvent(e) {
       // En una corrida el fin de partida es el fin del ante: lo que sigue
       // es la tienda o el resumen, no una revancha.
       if (inAnte) { setTimeout(endAnte, 900); break; }
-      setTimeout(() => showOverlay(
+      setTimeout(() => showGameOver(
         e.winner === HUMAN ? 'game.win' : 'game.lose',
         ['game.score', game.scores[HUMAN], game.scores[CPU]],
         'game.rematch', newGame), 900);
@@ -1165,16 +1183,16 @@ function nextRoundPrompt() {
   }, 1100);
 }
 
-// El overlay se queda con las claves, no con el texto ya resuelto: si el
-// jugador cambia de idioma con el cartel abierto (que es justo cuando el
-// selector está a la vista), tiene que repintarse solo.
-let overlayKeys = null;
+// El cartel de fin de partida se queda con las claves, no con el texto ya
+// resuelto: si el jugador cambia de idioma con el cartel abierto, tiene que
+// repintarse solo.
+let gameoverKeys = null;
 
-function showOverlay(title, text, btn, onClick) {
-  overlayKeys = { title, text, btn };
-  paintOverlay();
-  el.oBtn.onclick = () => { audio.play('click'); onClick(); };
-  showScreen('title');
+function showGameOver(title, text, btn, onClick) {
+  gameoverKeys = { title, text, btn };
+  paintGameOver();
+  el.gameoverBtn.onclick = () => { audio.play('click'); onClick(); };
+  showScreen('gameover');
   if (title === 'game.win') {
     for (let i = 0; i < 6; i++) {
       setTimeout(() => fx.burst(Math.random() * innerWidth, innerHeight * 0.6,
@@ -1186,21 +1204,305 @@ function showOverlay(title, text, btn, onClick) {
 // Una clave suelta, o una clave con argumentos: ['hud.pot', 3].
 const resolve = (k) => (Array.isArray(k) ? t(...k) : t(k));
 
-function paintOverlay() {
-  if (!overlayKeys) return;
-  el.oTitle.textContent = resolve(overlayKeys.title);
-  el.oText.textContent = resolve(overlayKeys.text);
-  el.oBtn.textContent = resolve(overlayKeys.btn);
+function paintGameOver() {
+  // El de salir no depende del resultado: está siempre y dice lo mismo.
+  el.gameoverQuit.textContent = t('game.exit');
+  if (!gameoverKeys) return;
+  el.gameoverTitle.textContent = resolve(gameoverKeys.title);
+  el.gameoverText.textContent = resolve(gameoverKeys.text);
+  el.gameoverBtn.textContent = resolve(gameoverKeys.btn);
+}
+
+// Terminada la partida, la revancha no puede ser la única puerta: quien no
+// quiere otra vuelve a la portada. Es el mismo camino que abandonar, sólo
+// que acá no hay nada que abandonar.
+el.gameoverQuit.addEventListener('click', () => { audio.play('click'); quitMatch(); });
+
+// ---- portada ----------------------------------------------------------
+
+// La portada es la cara del juego: el título a la izquierda con los accesos
+// debajo, y a la derecha una partida que se juega sola para que se vea de
+// qué se trata antes de apretar nada.
+
+// Continuar sólo tiene sentido si hay una corrida guardada a medio jugar.
+// Se consulta cada vez que se vuelve a la portada, porque entre una visita
+// y otra pudo terminarse o abandonarse.
+function paintHome() {
+  el.homeTitle.textContent = t('home.title');
+  const saved = loadRun();
+  el.homeContinue.hidden = !saved;
+  el.homeContinue.textContent = t('home.continue');
+  el.homeNew.textContent = t('home.new');
+  el.homeSettings.textContent = t('home.settings');
+  el.homeShare.textContent = t('home.share');
+  // Instagram y Facebook todavía no tienen a dónde apuntar: se muestran
+  // apagados con su etiqueta, igual que los modos que faltan.
+  for (const btn of [el.socialInstagram, el.socialFacebook]) {
+    btn.title = `${btn.textContent === 'IG' ? 'Instagram' : 'Facebook'} · ${t('modes.soon')}`;
+  }
+  el.socialGithub.title = 'GitHub';
+}
+
+el.homeNew.addEventListener('click', () => { audio.play('click'); showScreen('modes'); });
+el.homeContinue.addEventListener('click', () => { audio.play('click'); openRun(); });
+// La configuración es el mismo menú de pausa. Se abre a la fuerza porque la
+// portada ya es un cartel, y el guardia que impide apilar carteles es para
+// la partida, no para acá.
+el.homeSettings.addEventListener('click', () => { audio.play('click'); openMenu(true); });
+
+for (const btn of [el.socialInstagram, el.socialFacebook]) {
+  btn.addEventListener('click', () => audio.play('reject', { volume: 0.4 }));
+}
+
+// Compartir: la bandeja nativa si el navegador la tiene (es lo que sirve en
+// el teléfono), y si no, el link al portapapeles. Que el botón avise que
+// copió es lo único que convierte un clic mudo en una acción.
+el.homeShare.addEventListener('click', async () => {
+  audio.play('click');
+  const url = location.href;
+  try {
+    if (navigator.share) {
+      await navigator.share({ title: t('home.title'), text: t('home.shareText'), url });
+      return;
+    }
+  } catch { return; }      // canceló la bandeja nativa: no hay nada que avisar
+  try {
+    await navigator.clipboard.writeText(url);
+    flashShared();
+  } catch { /* sin portapapeles no se puede hacer más nada */ }
+});
+
+function flashShared() {
+  el.homeShare.textContent = t('home.shared');
+  el.homeShare.disabled = true;
+  fx.burstAt(el.homeShare, { count: 18, hue: 45, power: 5 });
+  setTimeout(() => {
+    el.homeShare.disabled = false;
+    el.homeShare.textContent = t('home.share');
+  }, 1600);
+}
+
+// ---- la partida de muestra --------------------------------------------
+
+// Una partida que se juega sola al lado del título. No es una animación de
+// cartas apareciendo: es el motor de verdad jugando, con sus tiempos. Las
+// cartas se reparten, se tiran una por una, se canta y la mano se resuelve
+// antes de levantar. Si fuera más rápido se vería como un parpadeo, y lo
+// que tiene que leerse es que ahí adentro hay alguien jugando.
+//
+// No usa la IA del juego: esa está escrita para el asiento del rival y acá
+// juegan los dos lados. Alcanza con elegir cualquier acción legal —lo mismo
+// que hace el test de humo— esquivando irse al mazo y el "no quiero", que
+// son las dos formas de que una mano se corte antes de mostrarse.
+const DEMO_TARGET = 9;
+
+// Los tiempos de la muestra. Cada beat es una pausa que en una mesa de
+// verdad existe: pensar, cantar y mirar quién se llevó la mano.
+const DEMO_BEAT = {
+  deal: 1200,
+  think: 850,
+  call: 1050,
+  trick: 1100,
+  round: 1400,
+};
+
+let demoGame = null;
+let demoRunning = false;
+let demoGen = 0;            // cada arranque invalida el bucle anterior
+let demoShoutTimer = 0;
+
+function demoAction(g) {
+  const actions = g.legalActions(g.turn);
+  if (!actions.length) return null;
+  const lively = actions.filter((a) => a.type !== 'fold' && a.type !== 'reject');
+  const pool = lively.length ? lively : actions;
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+function startDemo() {
+  // Con los efectos apagados no hay muestra: lo que se pidió apagar es
+  // justamente esto, cosas moviéndose solas en pantalla.
+  if (demoRunning || prefersReduced()) return;
+  demoRunning = true;
+  demoPlay(++demoGen);
+}
+
+function stopDemo() {
+  demoRunning = false;
+  demoGen++;                // el bucle en curso se corta en su próxima espera
+  demoGame = null;
+  clearTimeout(demoShoutTimer);
+  el.demoShout.hidden = true;
+  for (const node of [el.demoHandCpu, el.demoHandHuman, el.demoSlotCpu, el.demoSlotHuman]) {
+    node.innerHTML = '';
+  }
+}
+
+// Espera que avisa si la muestra se apagó mientras tanto. Todo el bucle se
+// corta mirando esto: sin eso, salir de la portada dejaría una partida
+// fantasma repartiendo sobre una pantalla que ya no está.
+const demoWait = (gen, ms) => new Promise((resolve) => {
+  setTimeout(() => resolve(gen === demoGen), ms);
+});
+
+async function demoPlay(gen) {
+  while (gen === demoGen) {
+    demoGame = new TrucoGame({ target: DEMO_TARGET });
+    demoDeal();
+    if (!await demoWait(gen, DEMO_BEAT.deal)) return;
+
+    while (gen === demoGen && demoGame.winner === null) {
+      if (demoGame.roundOver) {
+        if (!await demoWait(gen, DEMO_BEAT.round)) return;
+        if (demoGame.winner !== null) break;
+        demoGame.nextRound();
+        demoDeal();
+        if (!await demoWait(gen, DEMO_BEAT.deal)) return;
+        continue;
+      }
+
+      const player = demoGame.turn;
+      const action = demoAction(demoGame);
+      if (!action) break;
+
+      const tricksBefore = demoGame.trickResults.length;
+      demoGame.act(player, action);
+      demoShowAction(player, action);
+
+      if (!await demoWait(gen, action.type === 'play' ? DEMO_BEAT.think : DEMO_BEAT.call)) return;
+
+      // Si con esa carta se cerró la mano, se marca quién la ganó y recién
+      // después se levanta. Levantar en el momento es lo que hace que no se
+      // entienda qué pasó.
+      if (demoGame.trickResults.length > tricksBefore) {
+        demoMarkTrick();
+        if (!await demoWait(gen, DEMO_BEAT.trick)) return;
+        demoClearSlots();
+      }
+    }
+
+    if (!await demoWait(gen, DEMO_BEAT.round)) return;
+  }
+}
+
+// El punto del que salen las cartas al repartir: el centro de la muestra,
+// que es donde está la mesa.
+function demoOrigin() {
+  const box = el.homeDemo.getBoundingClientRect();
+  const w = parseFloat(getComputedStyle(el.homeDemo).getPropertyValue('--card-w')) || 60;
+  return {
+    left: box.left + box.width / 2 - w / 2,
+    top: box.top + box.height / 2 - w * 0.78,
+    width: w,
+    height: w * 1.55,
+  };
+}
+
+function demoDeal() {
+  demoClearSlots();
+  for (const [player, host, fanning] of [
+    [CPU, el.demoHandCpu, FAN_CPU],
+    [HUMAN, el.demoHandHuman, FAN_HUMAN],
+  ]) {
+    host.innerHTML = '';
+    for (const card of demoGame.hands[player]) host.appendChild(renderCard(card));
+    fan(host, fanning);
+  }
+
+  // Alternando una y una, como reparte cualquiera.
+  const origin = demoOrigin();
+  const order = [];
+  for (let i = 0; i < 3; i++) {
+    for (const host of [el.demoHandHuman, el.demoHandCpu]) {
+      if (host.children[i]) order.push(host.children[i]);
+    }
+  }
+  order.forEach((node, i) => demoFly(node, origin, { delay: i * 95, anticipate: false }));
+}
+
+// El vuelo de la muestra es el mismo del juego, pero callado: sin golpe de
+// pantalla ni chispas, que viven en la capa de la mesa y acá quedarían
+// detrás del panel de la portada.
+function demoFly(node, from, opts = {}) {
+  const rot = parseFloat(node.style.getPropertyValue('--rot')) || 0;
+  const lift = parseFloat(node.style.getPropertyValue('--lift')) || 0;
+  flyInto(node, from, {
+    spin: (Math.random() - 0.5) * 22,
+    rest: rot || lift ? `rotate(${rot}deg) translateY(${lift}px)` : '',
+    quiet: true,
+    ...opts,
+  });
+}
+
+function demoShowAction(player, action) {
+  if (action.type === 'play') return demoPlayCard(player);
+  if (action.type === 'accept') return demoShout(player, t('action.accept'), 'good');
+  if (action.type === 'reject') return demoShout(player, t('action.reject'), 'bad');
+  if (action.type === 'truco') {
+    return demoShout(player, callLabel(TRUCO_CHAIN[demoGame.trucoLevel - 1].key), 'truco');
+  }
+  return demoShout(player, callLabel(action.call), 'envido');
+}
+
+// La carta se mueve de la mano a la mesa: se saca el nodo de la mano, se
+// pone el suyo en la ranura y se lo hace llegar volando desde donde estaba.
+// Es el mismo gesto que en la mesa de verdad.
+function demoPlayCard(player) {
+  const host = player === CPU ? el.demoHandCpu : el.demoHandHuman;
+  const slot = player === CPU ? el.demoSlotCpu : el.demoSlotHuman;
+  const card = demoGame.played[player].at(-1);
+  if (!card) return;
+
+  const node = host.querySelector(`[data-card-id="${card.id}"]`);
+  const from = node?.getBoundingClientRect();
+  const spin = parseFloat(node?.style.getPropertyValue('--rot') ?? '') || 0;
+  node?.remove();
+  fan(host, player === CPU ? FAN_CPU : FAN_HUMAN);
+
+  slot.innerHTML = '';
+  const played = renderCard(card);
+  played.classList.add('played');
+  slot.appendChild(played);
+  if (from) demoFly(played, from, { spin });
+}
+
+function demoMarkTrick() {
+  const result = demoGame.trickResults.at(-1);
+  if (result === 'parda') return;
+  const won = result === CPU ? el.demoSlotCpu : el.demoSlotHuman;
+  const lost = result === CPU ? el.demoSlotHuman : el.demoSlotCpu;
+  won.firstElementChild?.classList.add('winner');
+  lost.firstElementChild?.classList.add('loser');
+}
+
+function demoClearSlots() {
+  el.demoSlotCpu.innerHTML = '';
+  el.demoSlotHuman.innerHTML = '';
+}
+
+// El canto, saliendo del lado del que habla. Es la versión chica del globo
+// de la mesa: el de allá se cuelga del escenario del juego, que acá está
+// tapado por el panel de la portada.
+function demoShout(player, text, tone) {
+  const node = el.demoShout;
+  node.className = `demo-shout tone-${tone} ${player === CPU ? 'is-cpu' : 'is-human'}`;
+  node.textContent = `¡${text}!`;
+  node.hidden = false;
+  node.style.animation = 'none';
+  void node.offsetWidth;            // reinicia la entrada
+  node.style.animation = '';
+  clearTimeout(demoShoutTimer);
+  demoShoutTimer = setTimeout(() => { node.hidden = true; }, 1300);
 }
 
 // ---- pantallas del cartel ---------------------------------------------
 
-// El cartel que tapa la mesa tiene varias caras: la portada (que también
-// hace de fin de partida), la elección de modo, la del largo del truco
-// clásico, y las tres de la corrida: antesala del ante, tienda y resumen
-// final. Una sola a la vez.
+// El cartel que tapa la mesa tiene varias caras: la portada, el fin de
+// partida del clásico, la elección de modo, la del largo, y las tres de la
+// corrida: antesala del ante, tienda y resumen final. Una sola a la vez.
 const SCREENS = {
   title: () => el.screenTitle,
+  gameover: () => el.screenGameover,
   modes: () => el.screenModes,
   length: () => el.screenLength,
   run: () => el.screenRun,
@@ -1222,6 +1524,13 @@ function showScreen(name) {
   card.classList.remove('screen-in');
   void card.offsetWidth;
   card.classList.add('screen-in');
+  // La portada no es un cartel encima de la mesa: es su propio panel, a
+  // pantalla completa y con fondo opaco.
+  el.overlay.classList.toggle('is-home', name === 'title');
+  // Y la partida de muestra vive sólo ahí: afuera no hay motivo para que
+  // siga jugando sola en segundo plano.
+  if (name === 'title') startDemo();
+  else stopDemo();
   paintScreens();
 }
 
@@ -1392,7 +1701,8 @@ function paintAll() {
   el.whoYou.textContent = t('hud.you');
   el.whoEnvido.textContent = t('hud.envido');
   el.envido.title = t('hud.envidoTip');
-  paintOverlay();
+  paintHome();
+  paintGameOver();
   paintScreens();
   paintRunHud();
   paintModsHud();
@@ -1428,8 +1738,11 @@ function setPaused(value) {
   }
 }
 
-function openMenu() {
-  if (!el.overlay.hidden) return;   // ya hay un cartel propio en pantalla
+// `force` es para la configuración de la portada: ahí el cartel de atrás es
+// la portada misma, y el menú se abre encima a propósito. El guardia sigue
+// valiendo para todo lo demás, que es donde apilar carteles confunde.
+function openMenu(force = false) {
+  if (!el.overlay.hidden && !force) return;   // ya hay un cartel propio en pantalla
   quitArmed = false;
   setPaused(true);
   paintMenu();
@@ -1535,7 +1848,8 @@ function quitMatch() {
   paintRunHud();
   paintModsHud();
   paintTargetPickers();   // sin partida vuelve a poder elegirse el largo
-  showOverlay('game.title', ['game.subtitle'], 'game.play', () => showScreen('modes'));
+  paintHome();            // puede haber cambiado si hay corrida guardada
+  showScreen('title');
 }
 
 window.addEventListener('keydown', (e) => {
@@ -1552,4 +1866,4 @@ resetVitals();
 paintAll();
 
 armAudio();
-showOverlay('game.title', ['game.subtitle'], 'game.play', () => showScreen('modes'));
+showScreen('title');

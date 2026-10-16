@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Truco</title>
+<title>¡Truco a esa mierd#!</title>
 <link rel="stylesheet" href="src/style.css">
 </head>
 <body>
@@ -81,6 +81,7 @@
   <!-- reloj del turno: sólo aparece cuando está encendido y te toca -->
   <div class="turn-timer" id="turn-timer" hidden>
     <i class="turn-timer-fill" id="turn-timer-fill"></i>
+    <i class="turn-timer-flame" aria-hidden="true"></i>
     <span class="turn-timer-num" id="turn-timer-num"></span>
   </div>
 
@@ -130,11 +131,54 @@
 
 <div class="overlay" id="overlay" hidden>
   <!-- portada, y también el cartel de fin de partida -->
-  <div class="overlay-card" id="screen-title">
-    <h1 id="overlay-title"></h1>
-    <p id="overlay-text"></p>
-    <button id="overlay-btn"></button>
-    <div class="langs" id="langs-overlay"></div>
+  <div class="overlay-card home-card" id="screen-title">
+    <!-- la partida de muestra es el escenario: ocupa la pantalla entera y
+         todo lo demás va encima -->
+    <div class="home-demo" id="home-demo" aria-hidden="true">
+      <div class="hand hand-cpu" id="demo-hand-cpu"></div>
+      <div class="home-demo-table">
+        <div class="slot" id="demo-slot-cpu"></div>
+        <div class="slot" id="demo-slot-human"></div>
+      </div>
+      <div class="hand hand-human" id="demo-hand-human"></div>
+      <span class="demo-shout" id="demo-shout" hidden></span>
+    </div>
+
+    <!-- la banda del menú, sobre el escenario -->
+    <div class="home-main">
+      <div class="home-brand">
+        <h1 class="home-title" id="home-title"></h1>
+        <p class="home-tagline" id="home-tagline"></p>
+      </div>
+
+      <nav class="home-actions">
+        <!-- continuar sólo aparece si hay una corrida guardada a medio jugar -->
+        <button class="home-link" id="home-continue" type="button" hidden></button>
+        <button class="home-link" id="home-new" type="button"></button>
+        <button class="home-link" id="home-settings" type="button"></button>
+        <button class="home-link" id="home-share" type="button"></button>
+      </nav>
+    </div>
+
+    <!-- idioma y redes, abajo a la derecha de la pantalla -->
+    <div class="home-footer">
+      <div class="langs" id="langs-overlay"></div>
+      <div class="socials">
+        <button class="social is-soon" id="social-instagram" type="button">IG</button>
+        <button class="social is-soon" id="social-facebook" type="button">FB</button>
+        <a class="social" id="social-github"
+           href="https://github.com/gustiolmos/truco-game"
+           target="_blank" rel="noopener">GH</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- fin de partida del truco clásico -->
+  <div class="overlay-card" id="screen-gameover" hidden>
+    <h1 id="gameover-title"></h1>
+    <p id="gameover-text"></p>
+    <button id="gameover-btn"></button>
+    <button class="ghost" id="gameover-quit" type="button"></button>
   </div>
 
   <!-- elección de modo -->

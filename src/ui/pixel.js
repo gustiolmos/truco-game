@@ -20,6 +20,8 @@ export const PALETTE = {
   m: '#b9b2c9',             // acero claro
   n: '#6f6888',             // acero en sombra
   r: '#e8465f',             // rojo (penachos, piedras)
+  h: '#2f2219',             // pelo, chambergo, cuero curtido
+  o: '#8a5a2b',             // cuero claro, madera
 };
 
 // Un <rect> por píxel infla el DOM al cuádruple de lo necesario, así que
